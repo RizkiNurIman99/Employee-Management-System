@@ -14,8 +14,15 @@ import attendanceRoutes from "./src/routes/attendance.routes.js";
 import rfidRoutes from "./src/routes/rfid.Routes.js";
 import router from "./src/auth/authRoutes.js";
 import { protect } from "./src/auth/protect.js";
+import { logError, logInfo } from "./src/utilities/logger.js";
 
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+
+dotenv.config({ path: envFile });
+
 const app = express();
 const server = http.createServer(app);
 
@@ -27,7 +34,7 @@ app.use(cors());
 
 app.use("/avatar", express.static("assets/avatar"));
 
-app.use("/api", router);
+app.use("/", router);
 app.use("/", rfidRoutes);
 app.use("/", employeeRoutes);
 app.use("/", attendanceRoutes);
@@ -42,13 +49,19 @@ app.get("/emittest", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
+  logInfo("Socket connected", socket.id);
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    logInfo("Socket disconnected", socket.id);
   });
 });
-connectDb().then(() => {
-  server.listen(process.env.PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${process.env.PORT}`);
+connectDb()
+  .then(() => {
+    logInfo("Database connected");
+  })
+  .catch((err) => {
+    logError("Database connecting error", err);
   });
+
+server.listen(process.env.PORT, "0.0.0.0", () => {
+  logInfo(`Server running on port ${process.env.PORT}`);
 });

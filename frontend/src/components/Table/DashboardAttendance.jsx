@@ -4,14 +4,12 @@ import ViewUser from "../Employee/ViewUser";
 import Option from "../Actions/Option";
 import TablePagination from "../Pagination/TablePagination";
 
-import axios from "axios";
 import toast from "react-hot-toast";
 import API_ENDPOINTS from "@/config/api";
 import { formattedDateShort, formatTime } from "@/config/formatDate";
 import { Eye, Trash2 } from "lucide-react";
 import { attendanceTableColumns } from "../Constant";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
-import ManualAttendance from "../Actions/ManualAttendance";
 import api from "@/config/axios";
 
 const StatusPill = ({ status }) => {
@@ -66,7 +64,6 @@ const DashboardAttendance = ({ Data }) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  console.log(Data);
 
   useEffect(() => {
     if (Data) {
@@ -101,37 +98,6 @@ const DashboardAttendance = ({ Data }) => {
     } finally {
       setIsConfirmOpen(false);
       setUserToDelete(null);
-    }
-  };
-
-  const handleAttendanceAction = async (action, empId, status = null) => {
-    const toastId = toast.loading("Processing your request");
-    try {
-      let response;
-      if (action === "check-in") {
-        response = await axios.post(API_ENDPOINTS.MANUAL_CHECKIN, { empId });
-        toast.success(response.data.message || "Check-in successful!", {
-          id: toastId,
-        });
-      } else if (action === "check-out") {
-        response = await axios.put(API_ENDPOINTS.MANUAL_CHECKOUT, { empId });
-        toast.success(response.data.message || "Check-out successful!", {
-          id: toastId,
-        });
-      } else if (action === "mark-status") {
-        response = await axios.post(API_ENDPOINTS.MANUAL_MARK_STATUS, {
-          empId,
-          status: status,
-        });
-        toast.success(response.data.message || "Status marked successfully!", {
-          id: toastId,
-        });
-      }
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "An error occurred.";
-      toast.error(errorMessage, { id: toastId });
-      console.error(`Failed to ${action}:`, error);
     }
   };
 

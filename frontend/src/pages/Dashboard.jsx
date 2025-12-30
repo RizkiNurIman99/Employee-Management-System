@@ -21,19 +21,16 @@ const Dashboard = () => {
       try {
         const res = await api.get(API_ENDPOINTS.GET_ALL_TODAYS_ATTENDANCE);
         setTodayAttendance(res.data.attendance);
-        console.log(res.data.attendance);
       } catch (error) {
         toast.error("failed get data");
       }
     };
     fetchDataAttendance();
     socket.on("attendance-recorded", (newRecord) => {
-      console.log("Check-in recorded:", newRecord);
       setTodayAttendance((prevRecords) => [newRecord, ...prevRecords]);
     });
 
     socket.on("attendance-updated", (updatedRecord) => {
-      console.log("Check-out recorded:", updatedRecord);
       setTodayAttendance((prevRecords) =>
         prevRecords.map((record) =>
           record._id === updatedRecord._id ? updatedRecord : record

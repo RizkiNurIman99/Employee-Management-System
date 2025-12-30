@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { attendanceTableColumns } from "../Constant";
 import Loading from "../Loading/Loading";
-import { Download } from "lucide-react";
+import { Download, Eye, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import ViewUser from "../Employee/ViewUser";
 import DatePicker from "../Date Picker/DatePicker";
@@ -12,6 +12,8 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { formattedDateShort, formatTime } from "@/config/formatDate";
 import api from "@/config/axios";
+import Option from "../Actions/Option";
+import ConfirmationDialog from "../Actions/ConfirmationDialog";
 
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
@@ -19,64 +21,88 @@ const AttendanceReport = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewDetail, setViewDetail] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewUser, setViewUser] = useState(false);
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const [currentPage,setCurrentPage] = useState(1)
-  const itemsPerPage = 5
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
-    if(!selectedDate){
-      setLoading(false)
+    if (!selectedDate) {
+      setLoading(false);
       return;
-    } 
-    const fetchAttendance = async() => {
-      try {
-        setLoading(true)
-        const formattedDate = selectedDate.toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta"})
-        const res = await api.get(`${API_ENDPOINTS.DAILY_REPORT}?date=${formattedDate}`)
-        setCurrentData(res.data.record || [])
-        console.log(res.data.record);
-      } catch (error) {
-        console.log("Fetching report error",error);
-      }finally {
-        setLoading(false)
-      }
     }
-    fetchAttendance()
-  },[selectedDate])
-  
+    const fetchAttendance = async () => {
+      try {
+        setLoading(true);
+        const formattedDate = selectedDate.toLocaleDateString("en-CA", {
+          timeZone: "Asia/Jakarta",
+        });
+        const res = await api.get(
+          `${API_ENDPOINTS.DAILY_REPORT}?date=${formattedDate}`
+        );
+        setCurrentData(res.data.record || []);
+      } catch (error) {
+        console.error("Error fetching data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttendance();
+  }, [selectedDate]);
+
+  const handleViewUser = (user) => {
+    setSelectedUser(user);
+    setViewUser(true);
+  };
+  const handleDeleteUser = (user) => {
+    setDeleteUser(user);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    const toastId = toast.loading("Delete data ....");
+    try {
+      await api.delete(
+        `${API_ENDPOINTS.DELETE_ATTENDANCE_RECORD}/${userToDelete._id}`
+      );
+      setCurrentData((prevData) =>
+        prevData.filter((item) => item._id !== userToDelete._id)
+      );
+      toast.success("Data has been deleted", { id: toastId });
+    } catch (error) {
+      toast.error("failed to delete data", { id: toastId });
+    } finally {
+      setIsConfirmOpen(false);
+      setUserToDelete(null);
+    }
+  };
 
   const exportExcle = () => {
-    if(currentData.length === 0 ) return toast.error("No Data to Export");
+    if (currentData.length === 0) return toast.error("No Data to Export");
 
     const worksheet = XLSX.utils.json_to_sheet(currentData);
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook,worksheet,"Daily Report")
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Report");
 
-    const excelBuffer = XLSX.write(workbook,{bookType: "xlsx", type:"array"});
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
     const file = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(file, `Attendance_Daily_${new Date().toLocaleDateString()}.xlsx`);
-  }
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    console.log("selected date : ", date);
-  };
-
-  const handleViewDetails = (user) => {
-    setSelectedUser(user);
-    setViewDetail(true);
-  };
-
-  const handleCloseModal = () => {
-    setViewDetail(false);
-    setSelectedUser(null);
   };
 
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
   const paginatedData = currentData.slice(firstItemIndex, lastItemIndex);
 
- 
   return (
     <div className="pb-6 h-screen">
       <div className="flex items-center justify-between">
@@ -133,7 +159,8 @@ const AttendanceReport = () => {
                   <tr
                     key={idx}
                     className="font-DMsans text-sm md:text-base bg-light dark:bg-second_dark border-b border-b-gray-200  dark:border-b-surface_dark">
-                    <td className="px-4 py-2"><div className="flex items-center gap-3">
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-3">
                         <img
                           src={
                             user.picture
@@ -148,7 +175,8 @@ const AttendanceReport = () => {
                           </p>
                           <p className="text-xs text-gray-500">{user.role}</p>
                         </div>
-                      </div></td>
+                      </div>
+                    </td>
                     <td className="px-4 py-2">{user.empId}</td>
                     <td className="px-4 py-2">{user.department}</td>
                     <td className="px-4 py-2">
@@ -158,22 +186,31 @@ const AttendanceReport = () => {
                         </p>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                           <span className="font-medium text-green-600">
-                             {formatTime(user.clockIn)}
+                            {formatTime(user.clockIn)}
                           </span>
                           <span>→</span>
                           <span className="font-medium text-red-600">
-                          {user.clockOut ? formatTime(user.clockOut) : "---"}
+                            {user.clockOut ? formatTime(user.clockOut) : "---"}
                           </span>
-                            </div>
                         </div>
+                      </div>
                     </td>
                     <td className="px-4 py-2">{user.status}</td>
                     <td className="px-4 py-2">
-                      <span
-                        onClick={() => handleViewDetails(user)}
-                        className=" hover:bg-orange-500 hover:text-light px-3 py-1 rounded-md cursor-pointer">
-                        View details
-                      </span>
+                      <Option
+                        menuItem={[
+                          {
+                            label: "View Details",
+                            icon: Eye,
+                            onClick: () => handleViewUser(user),
+                          },
+                          {
+                            label: "Delete",
+                            icon: Trash2,
+                            onClick: () => handleDeleteUser(user),
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 ))
@@ -181,11 +218,40 @@ const AttendanceReport = () => {
           </tbody>
         </table>
       </div>
-        <TablePagination currentPage={currentPage} totalItems={currentData.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={currentData.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
       <ViewUser
-        isOpen={viewDetail}
-        onClose={handleCloseModal}
+        isOpen={viewUser}
+        setIsOpen={setViewUser}
         user={selectedUser}
+        fields={[
+          { key: "empId", label: "Employee ID" },
+          { key: "department", label: "Department" },
+          {
+            key: "clockIn",
+            label: "Clock In",
+            formatter: (value) => formatTime(value),
+          },
+          {
+            key: "clockOut",
+            label: "Clock Out",
+            formatter: (value) => (value ? formatTime(value) : "---"),
+          },
+          { key: "status", label: "Status" },
+        ]}
+      />
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Attendance Data"
+        message={`Are you sure you want to delete the attendance data for ${deleteUser?.name}? `}
+        textButtonClose="Cancel"
+        textButtonConfirm="Delete"
       />
     </div>
   );

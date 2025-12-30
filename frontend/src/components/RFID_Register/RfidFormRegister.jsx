@@ -92,12 +92,10 @@ const RfidFormRegister = ({ onSuccess }) => {
     if (fileName) {
       fileName.value = file.name;
     }
-    console.log("File uploaded:", file.name);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("UID on submit", formData.uid);
 
     const requireFields = ["uid", "name", "empId", "department", "role"];
     const missingFields = requireFields.filter((field) => !formData[field]);
@@ -121,7 +119,6 @@ const RfidFormRegister = ({ onSuccess }) => {
       } else {
         formDataToSend.append("picture", "default-avatar.png");
       }
-      console.log("Form data to send:", [...formDataToSend.entries()]);
       const res = await axios.post(API_ENDPOINTS.CREATE_EMPLOYEE, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });

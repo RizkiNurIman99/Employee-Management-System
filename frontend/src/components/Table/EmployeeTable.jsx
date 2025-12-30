@@ -55,12 +55,10 @@ const EmployeeTable = ({ data }) => {
       setCurrentData((prevData) =>
         prevData.map((user) => (user.uid === updated.uid ? updated : user))
       );
-      console.log("User updated successfully:", updateUser);
       setTimeout(() => {
         toast.success("User updated successfully");
       }, 1500);
     } catch (error) {
-      console.log("Error updating user:", error.message);
       setTimeout(() => {
         toast.error("Failed to update user");
       }, 1000);

@@ -3,14 +3,14 @@ import { ArrowLeftToLine, LogOut, UserCircle2Icon } from "lucide-react";
 import { LuBell, LuMoon, LuSun } from "react-icons/lu";
 import { useTheme } from "../Hook/use-theme";
 import { useAuth } from "../Context/AuthContext";
-import { replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Header = ({ collapsed, setCollapsed }) => {
   const { theme, setTheme } = useTheme();
   const [isDropDownOpen, setIsDropDownOpen] = useState(false);
 
   const { logout } = useAuth();
-  const { navigate } = useNavigate();
+  const navigate = useNavigate();
 
   const dropDownRef = useRef(null);
 
@@ -39,7 +39,7 @@ const Header = ({ collapsed, setCollapsed }) => {
   }, [isDropDownOpen]);
 
   return (
-    <header className="relative z-10 flex h-[60px] items-center justify-between px-4 bg-light dark:bg-dark border-b border-b-slate-300 dark:border-b-second_dark">
+    <header className="relative z-10 flex h-[80px] items-center justify-between px-4 bg-light dark:bg-dark border-b border-b-slate-300 dark:border-b-second_dark">
       <div className="flex items-center gap-x-3">
         <button onClick={() => setCollapsed(!collapsed)}>
           <ArrowLeftToLine

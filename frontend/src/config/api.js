@@ -17,7 +17,7 @@ const API_ENDPOINTS = {
   GET_ALL_TODAYS_ATTENDANCE: `${API_BASE_URL}api/attendance/attendances`,
   DELETE_ATTENDANCE_RECORD: `${API_BASE_URL}api/attendance/delete-record`,
 
-  DAILY_REPORT : `${API_BASE_URL}api/attendance-report/daily-report`
+  DAILY_REPORT: `${API_BASE_URL}api/attendance-report/daily-report`,
 };
 
 export default API_ENDPOINTS;

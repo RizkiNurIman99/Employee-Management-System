@@ -1,12 +1,10 @@
 import dotenv from "dotenv";
-import express, { Router } from 'express'
+import express, { Router } from "express";
 import AdminLogin from "./authController.js";
 
-dotenv.config()
-const router = express.Router()
+dotenv.config();
+const router = express.Router();
 
-router.post("/login",AdminLogin)
+router.post("/api/login", AdminLogin);
 
-export default router
-
-
+export default router;
