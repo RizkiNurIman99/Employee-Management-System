@@ -16,21 +16,25 @@ import router from "./src/auth/authRoutes.js";
 import { protect } from "./src/auth/protect.js";
 import { logError, logInfo } from "./src/utilities/logger.js";
 
-const envFile =
-  process.env.NODE_ENV === "production"
-    ? ".env.production"
-    : ".env.development";
+dotenv.config();
 
-dotenv.config({ path: envFile });
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: { origin: process.env.CORS_ORIGIN, credentials: true },
+});
 
 setSocketInstance(io);
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
 
 app.use("/avatar", express.static("assets/avatar"));
 
@@ -57,11 +61,11 @@ io.on("connection", (socket) => {
 connectDb()
   .then(() => {
     logInfo("Database connected");
+    server.listen(PORT, "0.0.0.0", () => {
+      logInfo(`Server running on port ${process.env.PORT}`);
+    });
   })
   .catch((err) => {
     logError("Database connecting error", err);
+    process.exit(1);
   });
-
-server.listen(process.env.PORT, "0.0.0.0", () => {
-  logInfo(`Server running on port ${process.env.PORT}`);
-});
