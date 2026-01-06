@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.VITE_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}api/login`,
