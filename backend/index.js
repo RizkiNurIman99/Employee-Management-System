@@ -16,25 +16,38 @@ import router from "./src/auth/authRoutes.js";
 import { protect } from "./src/auth/protect.js";
 import { logError, logInfo } from "./src/utilities/logger.js";
 
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+dotenv.config({ path: envFile });
 
 const PORT = process.env.PORT || 5000;
 
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: { origin: process.env.CORS_ORIGIN, credentials: true },
-});
-
-setSocketInstance(io);
 app.use(express.json());
+
+const allowedOrigins = process.env.CORS_ORIGIN?.split(",");
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
+
+const io = new Server(server, {
+  cors: { origin: allowedOrigins, credentials: true },
+});
+
+setSocketInstance(io);
 
 app.use("/avatar", express.static("assets/avatar"));
 
@@ -62,7 +75,7 @@ connectDb()
   .then(() => {
     logInfo("Database connected");
     server.listen(PORT, "0.0.0.0", () => {
-      logInfo(`Server running on port ${process.env.PORT}`);
+      logInfo(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {

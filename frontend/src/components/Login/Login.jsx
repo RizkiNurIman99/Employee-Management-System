@@ -141,7 +141,7 @@ const Login = () => {
           className="absolute inset-0 w-full object-cover p-2"
         />
         <div className="relative z-10 flex flex-col justify-end p-12 ">
-          <h1 className="font-Dmsans text-white font-bold text-2xl">
+          <h1 className="font-Dmsans text-dark font-bold text-2xl dark:text-white">
             Welcome to <span className="text-orange-500">EMS</span> (Employee
             Management System)
           </h1>

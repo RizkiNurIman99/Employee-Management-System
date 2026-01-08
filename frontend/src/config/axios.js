@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  VITE_API_BASE_URL: "http://31.97.220.189:5000",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -10,7 +11,6 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 
