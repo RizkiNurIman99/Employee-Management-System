@@ -4,7 +4,7 @@ if (!API_BASE_URL) {
 }
 
 const API_ENDPOINTS = {
-  LOGIN: `${API_BASE_URL}api/login`,
+  LOGIN: `${API_BASE_URL}/login`,
   REGISTER: `${API_BASE_URL}auth/register`,
   AVATAR: `${API_BASE_URL}avatar`,
   EMPLOYEES: `${API_BASE_URL}api/employees`,
