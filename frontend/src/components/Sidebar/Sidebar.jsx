@@ -20,7 +20,7 @@ const Sidebar = forwardRef(({ collapsed }, ref) => {
       className={`${
         collapsed ? "w-[70px]" : "w-[200px]"
       } h-screen bg-background border-r border-r-border`}>
-      <div className="h-[60px] px-4 flex items-center font-semibold dark:text-light">
+      <div className="h-[80px] px-4 flex items-center font-semibold dark:text-light">
         <Link to={"/"}>
           <img
             src={logosrc}
