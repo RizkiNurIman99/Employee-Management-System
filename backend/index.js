@@ -28,6 +28,7 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
+app.set("trust proxy", true);
 
 const allowedOrigins = process.env.CORS_ORIGIN?.split(",");
 app.use(
@@ -44,6 +45,7 @@ app.use(
 );
 
 const io = new Server(server, {
+  path: "/socket.io",
   cors: { origin: allowedOrigins, credentials: true },
 });
 
