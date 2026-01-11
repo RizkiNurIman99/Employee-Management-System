@@ -51,10 +51,10 @@ setSocketInstance(io);
 
 app.use("/avatar", express.static("assets/avatar"));
 
-app.use("/", router);
-app.use("/", rfidRoutes);
-app.use("/", employeeRoutes);
-app.use("/", attendanceRoutes);
+app.use("/api", router);
+app.use("/api", rfidRoutes);
+app.use("/api", employeeRoutes);
+app.use("/api", attendanceRoutes);
 
 app.get("/api/secure", protect, (req, res) => {
   res.json({ message: "Anda berhasil masuk", user: req.user });
