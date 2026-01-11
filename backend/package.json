@@ -9,6 +9,9 @@
     "seed": "backend/scripts/seedAdmin.js",
     "start": "node index.js"
   },
+  "engines": {
+    "node": ">=20 <21"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
