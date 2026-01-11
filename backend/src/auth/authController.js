@@ -5,9 +5,11 @@ import Admin from "../models/adminModel.js";
 export const AdminLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    const admin = await Admin.findOne({ username });
-
+    console.log("Input Username:", username);
+    const admin = await Admin.findOne({
+      username: username.toLowerCase().trim(),
+    });
+    console.log("Admin Found:", admin ? "Yes" : "No");
     if (!admin)
       return res.status(401).json({ message: "Username atau password salah" });
 
@@ -15,6 +17,8 @@ export const AdminLogin = async (req, res) => {
 
     if (!isMatch)
       return res.status(401).json({ message: "Username atau password salah" });
+    console.log("Password Match:", isMatch);
+    console.log("Hash in DB:", admin.password);
 
     const token = jwt.sign(
       {

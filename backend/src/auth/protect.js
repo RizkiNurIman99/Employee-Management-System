@@ -10,7 +10,7 @@ export const protect = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
-    const admin = await Admin.findById(decoded.adminId).select("-passsword");
+    const admin = await Admin.findById(decoded.adminId).select("-password");
     if (!admin) {
       return res.status(401).json({ message: "Admin not found" });
     }
