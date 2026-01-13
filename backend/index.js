@@ -34,8 +34,8 @@ const allowedOrigins = process.env.CORS_ORIGIN?.split(",");
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+      if (!origin) {
+        return callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
