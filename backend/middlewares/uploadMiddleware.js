@@ -20,12 +20,13 @@ const storage = multer.diskStorage({
     cb(null, "assets/avatar");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + path.extname(file.originalname));
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueName + path.extname(file.originalname));
   },
 });
 
 export const upload = multer({
   storage,
-  limits: { fieldSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter,
 });

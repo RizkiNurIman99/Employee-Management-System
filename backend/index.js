@@ -29,18 +29,25 @@ const server = http.createServer(app);
 
 app.use(express.json());
 app.set("trust proxy", true);
+app.options("/", cors());
 
 const allowedOrigins = process.env.CORS_ORIGIN?.split(",");
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
+      // allow server-to-server & tools like Postman
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -51,7 +58,7 @@ const io = new Server(server, {
 
 setSocketInstance(io);
 
-app.use("/avatar", express.static("assets/avatar"));
+app.use("/api/avatar", express.static("assets/avatar"));
 
 app.use("/api", router);
 app.use("/api", rfidRoutes);

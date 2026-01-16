@@ -2,18 +2,13 @@ import React, { forwardRef } from "react";
 import { Link, NavLink } from "react-router";
 import { navbarLinks } from "../Constant";
 
-import logolight from "../../assets/Logo/1x/logolightmode.png";
-import logodark from "../../assets/Logo/1x/logodarkmode.png";
-import logoicon from "../../assets/Logo/1x/logo.png";
+import logo from "../../assets/Logo/Logo.png";
+import logoIcon from "../../assets/Logo/Logo Icon.png";
 import { useTheme } from "../Context/theme-context";
 
 const Sidebar = forwardRef(({ collapsed }, ref) => {
   const { theme } = useTheme();
-  const logosrc = collapsed
-    ? logoicon
-    : theme === "dark"
-    ? logodark
-    : logolight;
+  const logosrc = collapsed ? logoIcon : logo;
   return (
     <aside
       ref={ref}
@@ -25,7 +20,7 @@ const Sidebar = forwardRef(({ collapsed }, ref) => {
           <img
             src={logosrc}
             className={`object-contain transition-all duration-300
-    ${collapsed ? "h-[40px]" : "h-[50px]"}
+    ${collapsed ? "h-[50px]" : "h-[70px]"}
     max-w-full dark:brightness-110
   `}
           />
