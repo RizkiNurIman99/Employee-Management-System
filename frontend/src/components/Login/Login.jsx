@@ -20,11 +20,11 @@ const Login = () => {
   const { theme, setTheme } = useTheme();
 
   const bannerTexts = [
-    "Empowering Team Collaboration",
-    "Streamlined Employee Management",
-    "Modern Workplace Solutions",
-    "Real-Time Productivity Tracking",
-    "Smart Data-Driven Insights",
+    "Real-Time Monitoring",
+    "RFID Integration",
+    "Live Connection Status",
+    "Responsive Dashboard",
+    "Data Persistence",
   ];
 
   const officeImage =
