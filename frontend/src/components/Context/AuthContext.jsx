@@ -4,12 +4,15 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const storedAdmin = localStorage.getItem("admin");
-    if (storedAdmin) {
+    if (token && storedAdmin) {
       setAdmin(JSON.parse(storedAdmin));
+      setIsAuthenticated(true);
     }
     setLoading(false);
   }, []);
@@ -18,15 +21,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("admin", JSON.stringify(data.user));
     setAdmin(data.user);
+    setIsAuthenticated(true);
   };
 
   const logout = () => {
     setAdmin(null);
     localStorage.clear();
+    setIsAuthenticated(false);
   };
   const value = {
     admin,
-    isAuthenticated: !!localStorage.getItem("token"),
+    isAuthenticated,
     login,
     logout,
     loading,
