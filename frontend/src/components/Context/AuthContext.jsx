@@ -4,20 +4,19 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true)
-  
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedAdmin = localStorage.getItem("admin");
-    if(storedAdmin){
-      setAdmin(JSON.parse(storedAdmin))
+    if (storedAdmin) {
+      setAdmin(JSON.parse(storedAdmin));
     }
-    setLoading(false)
-  },[])
+    setLoading(false);
+  }, []);
 
   const login = (data) => {
     localStorage.setItem("token", data.token);
-    localStorage.setItem("admin", JSON.stringify(data.user))
+    localStorage.setItem("admin", JSON.stringify(data.user));
     setAdmin(data.user);
   };
 
@@ -27,10 +26,10 @@ export const AuthProvider = ({ children }) => {
   };
   const value = {
     admin,
-    isAuthenticated: !!admin,
+    isAuthenticated: !!localStorage.getItem("token"),
     login,
     logout,
-    loading
+    loading,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
