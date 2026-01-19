@@ -19,7 +19,6 @@ const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
   const [currentData, setCurrentData] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [viewDetail, setViewDetail] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewUser, setViewUser] = useState(false);
   const [deleteUser, setDeleteUser] = useState(null);
@@ -40,7 +39,7 @@ const AttendanceReport = () => {
           timeZone: "Asia/Jakarta",
         });
         const res = await api.get(
-          `${API_ENDPOINTS.DAILY_REPORT}?date=${formattedDate}`
+          `${API_ENDPOINTS.DAILY_REPORT}?date=${formattedDate}`,
         );
         setCurrentData(res.data.record || []);
       } catch (error) {
@@ -66,10 +65,10 @@ const AttendanceReport = () => {
     const toastId = toast.loading("Delete data ....");
     try {
       await api.delete(
-        `${API_ENDPOINTS.DELETE_ATTENDANCE_RECORD}/${userToDelete._id}`
+        `${API_ENDPOINTS.DELETE_ATTENDANCE_RECORD}/${userToDelete._id}`,
       );
       setCurrentData((prevData) =>
-        prevData.filter((item) => item._id !== userToDelete._id)
+        prevData.filter((item) => item._id !== userToDelete._id),
       );
       toast.success("Data has been deleted", { id: toastId });
     } catch (error) {
@@ -164,7 +163,7 @@ const AttendanceReport = () => {
                         <img
                           src={
                             user.picture
-                              ? `http://localhost:5000/avatar/${user.picture}`
+                              ? `${import.meta.env.VITE_API_BASE_URL}/avatar/${user.picture}`
                               : "/default-avatar.png"
                           }
                           className="size-7 rounded-full object-cover shrink-0"

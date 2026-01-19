@@ -62,7 +62,7 @@ export const attendance = async (req, res) => {
       await newAttendance.save();
       emitSocketEvent("attendance-recorded", newAttendance);
       console.log(
-        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`
+        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`,
       );
 
       return res.status(201).json({
@@ -79,7 +79,7 @@ export const attendance = async (req, res) => {
         await existingEmployee.save();
         emitSocketEvent("attendance-updated", existingEmployee);
         console.log(
-          `Clock out : ${employee.name}, ${employee.empId} at ${existingEmployee.clockOut}`
+          `Clock out : ${employee.name}, ${employee.empId} at ${existingEmployee.clockOut}`,
         );
         return res.status(200).json({
           message: "Check Out succesfully",
@@ -95,8 +95,6 @@ export const attendance = async (req, res) => {
 
 export const getAttendanceEmployee = async (req, res) => {
   try {
-    console.log("request query :", req.query);
-
     const { uid, name, empId } = req.query;
 
     if (!uid && !name && !empId) {
@@ -110,11 +108,11 @@ export const getAttendanceEmployee = async (req, res) => {
     if (name) filter.name = name;
     if (empId) filter.empId = empId;
 
-    console.log("filter :", filter);
+    const employee = await TodaysAttendance.findOne({
+      ...filter,
+      date: { $gte: start, $lte: end },
+    }).sort({ clockIn: -1 });
 
-    const employee = await TodaysAttendance.findOne(filter).sort({
-      createdAt: -1,
-    });
     if (employee) {
       return res.status(200).json({ exists: true, employee });
     } else {
@@ -125,7 +123,6 @@ export const getAttendanceEmployee = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Internal Server Error", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -148,7 +145,6 @@ export const getAllTodaysAttendance = async (req, res) => {
       attendance: todaysAttendance,
     });
   } catch (error) {
-    console.error("[ERROR GETTING TODAY'S ATTENDANCE]", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -218,7 +214,7 @@ export const checkIn = async (req, res) => {
       await newAttendance.save();
       emitSocketEvent("attendance-recorded", newAttendance);
       console.log(
-        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`
+        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`,
       );
 
       return res.status(201).json({
@@ -394,7 +390,7 @@ export const getManualAttend = async (req, res) => {
   } catch (error) {
     console.error(
       `Error fetching manual attendance data for type '${type}':`,
-      error.message
+      error.message,
     );
     return res.status(500).json({ message: "Internal Server Error" });
   }

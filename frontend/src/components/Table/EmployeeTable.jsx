@@ -47,13 +47,13 @@ const EmployeeTable = ({ data }) => {
     try {
       const res = await axios.put(
         `${API_ENDPOINTS.UPDATE_EMPLOYEE}/${updateUser.uid}`,
-        updateUser
+        updateUser,
       );
 
       const updated = res.data.updatedEmployee;
 
       setCurrentData((prevData) =>
-        prevData.map((user) => (user.uid === updated.uid ? updated : user))
+        prevData.map((user) => (user.uid === updated.uid ? updated : user)),
       );
       setTimeout(() => {
         toast.success("User updated successfully");
@@ -74,7 +74,7 @@ const EmployeeTable = ({ data }) => {
     try {
       await axios.delete(`${API_ENDPOINTS.DELETE_EMPLOYEE}/${deleteUser._id}`);
       setCurrentData((prevData) =>
-        prevData.filter((employee) => employee._id !== deleteUser._id)
+        prevData.filter((employee) => employee._id !== deleteUser._id),
       );
       toast.success("Data has been deleted", { id: toastId });
     } catch (error) {
@@ -133,7 +133,7 @@ const EmployeeTable = ({ data }) => {
                       <img
                         src={
                           user.picture
-                            ? `${API_ENDPOINTS.AVATAR}/${user.picture}`
+                            ? `${import.meta.env.VITE_API_BASE_URL}/avatar/${user.picture}`
                             : "/default-avatar.png"
                         }
                         className="size-10 shrink-0 rounded-full object-cover"

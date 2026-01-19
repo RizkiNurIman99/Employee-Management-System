@@ -16,6 +16,9 @@ import router from "./src/auth/authRoutes.js";
 import { protect } from "./src/auth/protect.js";
 import { logError, logInfo } from "./src/utilities/logger.js";
 
+import path, { join } from "path";
+import { fileURLToPath } from "url";
+
 const envFile =
   process.env.NODE_ENV === "production"
     ? ".env.production"
@@ -36,7 +39,6 @@ const allowedOrigins = process.env.CORS_ORIGIN?.split(",");
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow server-to-server & tools like Postman
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -48,7 +50,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 const io = new Server(server, {
@@ -57,8 +59,10 @@ const io = new Server(server, {
 });
 
 setSocketInstance(io);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-app.use("/api/avatar", express.static("assets/avatar"));
+app.use("/api/avatar", path.join(__dirname, "assets/avatar"));
 
 app.use("/api", router);
 app.use("/api", rfidRoutes);
