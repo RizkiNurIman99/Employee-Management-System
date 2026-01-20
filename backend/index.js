@@ -9,6 +9,7 @@ import {
   emitSocketEvent,
   setSocketInstance,
 } from "./src/utilities/socketInstance.js";
+
 import employeeRoutes from "./src/routes/employee.routes.js";
 import attendanceRoutes from "./src/routes/attendance.routes.js";
 import rfidRoutes from "./src/routes/rfid.Routes.js";
@@ -16,7 +17,7 @@ import router from "./src/auth/authRoutes.js";
 import { protect } from "./src/auth/protect.js";
 import { logError, logInfo } from "./src/utilities/logger.js";
 
-import path, { join } from "path";
+import path from "path";
 import { fileURLToPath } from "url";
 
 const envFile =
@@ -62,7 +63,10 @@ setSocketInstance(io);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-app.use("/api/avatar", path.join(__dirname, "assets/avatar"));
+app.use(
+  "/storage/avatar",
+  express.static(path.join(__dirname, "assets/avatar")),
+);
 
 app.use("/api", router);
 app.use("/api", rfidRoutes);

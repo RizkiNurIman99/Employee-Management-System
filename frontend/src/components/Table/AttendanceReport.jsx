@@ -163,7 +163,7 @@ const AttendanceReport = () => {
                         <img
                           src={
                             user.picture
-                              ? `${import.meta.env.VITE_API_BASE_URL}/avatar/${user.picture}`
+                              ? `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`
                               : "/default-avatar.png"
                           }
                           className="size-7 rounded-full object-cover shrink-0"

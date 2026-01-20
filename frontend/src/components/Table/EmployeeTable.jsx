@@ -133,7 +133,7 @@ const EmployeeTable = ({ data }) => {
                       <img
                         src={
                           user.picture
-                            ? `${import.meta.env.VITE_API_BASE_URL}/avatar/${user.picture}`
+                            ? `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`
                             : "/default-avatar.png"
                         }
                         className="size-10 shrink-0 rounded-full object-cover"

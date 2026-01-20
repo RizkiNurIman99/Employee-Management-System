@@ -61,9 +61,6 @@ export const attendance = async (req, res) => {
       });
       await newAttendance.save();
       emitSocketEvent("attendance-recorded", newAttendance);
-      console.log(
-        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`,
-      );
 
       return res.status(201).json({
         message: "Attendance recorded successfully",
@@ -78,9 +75,7 @@ export const attendance = async (req, res) => {
         existingEmployee.clockOut = now;
         await existingEmployee.save();
         emitSocketEvent("attendance-updated", existingEmployee);
-        console.log(
-          `Clock out : ${employee.name}, ${employee.empId} at ${existingEmployee.clockOut}`,
-        );
+
         return res.status(200).json({
           message: "Check Out succesfully",
           attendance: existingEmployee,
@@ -88,7 +83,6 @@ export const attendance = async (req, res) => {
       }
     }
   } catch (error) {
-    console.error("Error RFID scan", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
