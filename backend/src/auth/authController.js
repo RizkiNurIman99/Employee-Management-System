@@ -9,7 +9,6 @@ export const AdminLogin = async (req, res) => {
     const admin = await Admin.findOne({
       username: username.toLowerCase().trim(),
     });
-    console.log("Admin Found:", admin ? "Yes" : "No");
     if (!admin)
       return res.status(401).json({ message: "Username atau password salah" });
 
@@ -24,7 +23,7 @@ export const AdminLogin = async (req, res) => {
         role: admin.role,
       },
       process.env.SECRET_KEY,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     res.json({
