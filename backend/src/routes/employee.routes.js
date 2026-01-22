@@ -20,9 +20,8 @@ router.get("/employee/:uid", getEmployeeById);
 router.post(
   "/createEmployee",
   protect,
-  authorize("active"),
   upload.single("picture"),
-  createEmployee
+  createEmployee,
 );
 router.put("/updateEmployee/:uid", upload.single("picture"), updateEmployee);
 router.delete("/deleteEmployee/:id", deleteEmployee);

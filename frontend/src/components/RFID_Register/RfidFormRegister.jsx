@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import axios from "axios";
 import socket from "@/config/socket";
 import API_ENDPOINTS from "@/config/api";
 import { toast } from "react-hot-toast";
+import api from "@/config/axios";
 
 const RfidFormRegister = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -39,12 +39,12 @@ const RfidFormRegister = ({ onSuccess }) => {
     }
   };
   useEffect(() => {
-    socket.on("uid-detected", (data) => {
-      console.log("UID recevied from backend:", data);
+    const handleUidDetected = (data) => {
       setFormData((prev) => ({
         ...prev,
         uid: data.uid,
       }));
+
       if (data.message) {
         if (data.isRegistered) {
           toast.error(data.message);
@@ -52,10 +52,11 @@ const RfidFormRegister = ({ onSuccess }) => {
           toast.success(data.message);
         }
       }
-      return () => {
-        socket.off("uid-detected");
-      };
-    });
+    };
+    socket.on("uid-detected", handleUidDetected);
+    return () => {
+      socket.off("uid-detected", handleUidDetected);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -67,7 +68,6 @@ const RfidFormRegister = ({ onSuccess }) => {
 
   const handleUploadPicture = (e) => {
     const file = e.target.files[0];
-    console.log("Selected file:", file);
 
     if (!file) {
       console.log("No file selected");
@@ -80,8 +80,8 @@ const RfidFormRegister = ({ onSuccess }) => {
     }
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
-      console.warn("file too large, max size is 2MB", file.size);
-      toast.error("File too large, max size is 2MB", "error");
+      console.warn("file too large, max size is 2MB");
+      toast.error("File too large, max size is 2MB");
       return;
     }
     setFormData((prev) => ({
@@ -103,7 +103,7 @@ const RfidFormRegister = ({ onSuccess }) => {
     if (missingFields.length > 0) {
       showMessage(
         `Please fill in all fields: ${missingFields.join(", ")}`,
-        "error"
+        "error",
       );
       return;
     }
@@ -116,12 +116,8 @@ const RfidFormRegister = ({ onSuccess }) => {
       formDataToSend.append("role", formData.role);
       if (formData.picture) {
         formDataToSend.append("picture", formData.picture);
-      } else {
-        formDataToSend.append("picture", "default-avatar.png");
       }
-      const res = await axios.post(API_ENDPOINTS.CREATE_EMPLOYEE, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post(API_ENDPOINTS.CREATE_EMPLOYEE, formDataToSend);
 
       console.log("Response from server:", res.data);
       toast.success("User registered successfully");
@@ -141,7 +137,7 @@ const RfidFormRegister = ({ onSuccess }) => {
       }
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message;
-      toast.error(errorMsg || "Failed to register user", "error");
+      toast.error(errorMsg || "Failed to register user");
     }
   };
 
@@ -269,7 +265,7 @@ const RfidFormRegister = ({ onSuccess }) => {
               </span>
             </div>
           </div>
-          <Button className="text-dark dark:text-light text-base bg-light dark:bg-secondary-background hover:bg-accent border border-border rounded-md">
+          <Button className="text-light text-base bg-orange-500 hover:bg-orange-600 rounded-md cursor-pointer">
             Register
           </Button>
         </form>

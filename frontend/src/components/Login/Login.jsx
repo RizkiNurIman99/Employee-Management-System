@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { LuMoon, LuSun, LuUser, LuLock } from "react-icons/lu";
 import { useTheme } from "../Hook/use-theme";
-import axios from "@/config/axios";
 import API_ENDPOINTS from "@/config/api";
 import logo from "../../assets/Logo/Logo.png";
+import api from "@/config/axios";
 
 const Login = () => {
   const [username, setUserName] = useState("");
@@ -52,15 +52,19 @@ const Login = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(API_ENDPOINTS.LOGIN, {
+      const response = await api.post(API_ENDPOINTS.LOGIN, {
         username,
         password,
       });
+      console.log("response login", response);
+
       login(response.data);
       navigate(from, { replace: true });
     } catch (err) {
+      console.log("error:", err);
+
       setError(
-        err.response?.status === 401 ? "Invalid credentials" : "Server error"
+        err.response?.status === 401 ? "Invalid credentials" : "Server error",
       );
     } finally {
       setLoading(false);

@@ -39,7 +39,7 @@ export const rfidScan = async (req, res) => {
       const currentHour = today.getHours();
       const currentMinute = today.getMinutes();
       const onTimeHour = 7;
-      const onTimeMinute = 30;
+      const onTimeMinute = 0;
 
       let status;
       if (

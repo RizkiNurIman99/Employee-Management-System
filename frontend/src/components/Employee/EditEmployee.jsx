@@ -49,6 +49,9 @@ const EditEmployee = ({
   const [selectedPicture, setSelectedPicture] = useState(null);
   const fileInputRef = useRef();
 
+  const getAvatarUrl = (picture) =>
+    `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${picture || "default-avatar.png"}`;
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -96,7 +99,7 @@ const EditEmployee = ({
         dataToUpdate,
         {
           headers: { "Content-Type": "multipart/form-data" },
-        }
+        },
       );
       updateUser(res.data.updatedEmployee);
       setIsOpen(false);
@@ -128,7 +131,7 @@ const EditEmployee = ({
         className={`transform transition-transform duration-500 ease-in-out fixed inset-y-0 right-0 w-screen max-w-md bg-white dark:bg-dark flex flex-col overflow-y-auto ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}>
-        <div className="flex items-center justify-between border-b border-b-border dark:border-b-border p-6 overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-b-border dark:border-b-border p-6">
           <h2 id="slide-over" className="text-lg font-semibold">
             Edit Profile
           </h2>
@@ -146,16 +149,15 @@ const EditEmployee = ({
                 </label>
                 <div className="mt-2 flex items-center gap-4">
                   <img
-                    src={
-                      selectedPicture
-                        ? URL.createObjectURL(selectedPicture)
-                        : formData.picture
-                        ? `${API_ENDPOINTS.AVATAR}/${formData.picture}`
-                        : "default-avatar.png"
-                    }
+                    src={getAvatarUrl(user?.picture)}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
+                    }}
                     alt="avatar"
                     className="object-cover size-20 rounded-full"
                   />
+
                   <input
                     type="file"
                     accept="image/*"

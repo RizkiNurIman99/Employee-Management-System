@@ -8,9 +8,9 @@ import { Eye, PenBoxIcon, Trash2 } from "lucide-react";
 import API_ENDPOINTS from "@/config/api";
 import EditEmployee from "../Employee/EditEmployee";
 import toast from "react-hot-toast";
-import axios from "axios";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
 import { formattedDateShort } from "@/config/formatDate";
+import api from "@/config/axios";
 
 const EmployeeTable = ({ data }) => {
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,7 @@ const EmployeeTable = ({ data }) => {
 
   const updatedUser = async (updateUser) => {
     try {
-      const res = await axios.put(
+      const res = await api.put(
         `${API_ENDPOINTS.UPDATE_EMPLOYEE}/${updateUser.uid}`,
         updateUser,
       );
@@ -72,13 +72,12 @@ const EmployeeTable = ({ data }) => {
     if (!deleteUser) return null;
     const toastId = toast.loading("Delete Employee .... ");
     try {
-      await axios.delete(`${API_ENDPOINTS.DELETE_EMPLOYEE}/${deleteUser._id}`);
+      await api.delete(`${API_ENDPOINTS.DELETE_EMPLOYEE}/${deleteUser._id}`);
       setCurrentData((prevData) =>
         prevData.filter((employee) => employee._id !== deleteUser._id),
       );
       toast.success("Data has been deleted", { id: toastId });
     } catch (error) {
-      console.error("failed to delete data:", error);
       toast.error("failed to delete data", { id: toastId });
     } finally {
       setIsConfirmOpen(false);
@@ -131,11 +130,10 @@ const EmployeeTable = ({ data }) => {
                     <td className="px-4 py-2 ">{user.uid}</td>
                     <td className="px-4 py-2 flex items-center gap-2 whitespace-nowrap">
                       <img
-                        src={
-                          user.picture
-                            ? `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`
-                            : "/default-avatar.png"
-                        }
+                        src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
+                        onError={(e) => {
+                          e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
+                        }}
                         className="size-10 shrink-0 rounded-full object-cover"
                       />
                       <div className="flex flex-col">

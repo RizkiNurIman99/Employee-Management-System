@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
-import API_ENDPOINTS from "@/config/api";
 
 const StatusPill = ({ status }) => {
   const getStatusColor = () => {
@@ -27,6 +26,10 @@ const StatusPill = ({ status }) => {
 
 const ViewUser = ({ isOpen, setIsOpen, user, fields, side = "right" }) => {
   const [show, setShow] = useState(false);
+
+  const getAvatarUrl = (picture) =>
+    `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${picture || "default-avatar.png"}`;
+
   useEffect(() => {
     if (isOpen) {
       const timer = setInterval(() => {
@@ -76,11 +79,11 @@ const ViewUser = ({ isOpen, setIsOpen, user, fields, side = "right" }) => {
         <div className="flex-1 overvlow-y-auto">
           <div className=" p-6 text-center border-b border-b-border dark:border-b-border">
             <img
-              src={
-                user
-                  ? `${API_ENDPOINTS.AVATAR}/${user.picture}`
-                  : "default-avatar.png"
-              }
+              src={getAvatarUrl(user.picture)}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
+              }}
               alt="Avatar"
               className="object-cover size-24 ring-offset-2 ring-orange-500 rounded-full mx-auto"
             />

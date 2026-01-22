@@ -1,6 +1,6 @@
-import { Toaster } from "react-hot-toast";
+import { Outlet } from "react-router";
 const App = () => {
-  return <Toaster />;
+  return <Outlet />;
 };
 
 export default App;

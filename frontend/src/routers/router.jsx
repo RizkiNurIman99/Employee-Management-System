@@ -7,24 +7,29 @@ import DashboardLayout from "@/components/Dashboard/DashboardLayout.jsx";
 import PrivateRoute from "../components/Login/PrivateRoute.jsx";
 import Login from "@/components/Login/Login.jsx";
 import PublicRoute from "@/components/Login/PublicRoute.jsx";
+import App from "@/App.jsx";
 
 const router = createBrowserRouter([
   {
-    element: <PublicRoute />,
-    children: [{ path: "/login", element: <Login /> }],
-  },
-  {
-    path: "/",
-    element: <PrivateRoute />,
+    element: <App />, // ⬅️ App dipakai
     children: [
       {
-        element: <DashboardLayout />,
+        element: <PublicRoute />,
+        children: [{ path: "/login", element: <Login /> }],
+      },
+      {
+        element: <PrivateRoute />,
         children: [
-          { index: true, element: <Dashboard /> },
-          { path: "dashboard", element: <Dashboard /> },
-          { path: "attendance", element: <Attendance /> },
-          { path: "employee", element: <Employee /> },
-          { path: "manage-user", element: <ManageUser /> },
+          {
+            element: <DashboardLayout />,
+            children: [
+              { index: true, element: <Dashboard /> },
+              { path: "dashboard", element: <Dashboard /> },
+              { path: "attendance", element: <Attendance /> },
+              { path: "employee", element: <Employee /> },
+              { path: "manage-user", element: <ManageUser /> },
+            ],
+          },
         ],
       },
     ],

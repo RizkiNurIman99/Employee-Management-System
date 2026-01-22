@@ -25,6 +25,7 @@ export const AdminLogin = async (req, res) => {
       process.env.SECRET_KEY,
       { expiresIn: "1d" },
     );
+    console.log("Token login", token);
 
     res.json({
       message: "Login berhasil",

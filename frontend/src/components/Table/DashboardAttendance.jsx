@@ -153,11 +153,10 @@ const DashboardAttendance = ({ Data }) => {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <img
-                          src={
-                            user.picture
-                              ? `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`
-                              : "/default-avatar.png"
-                          }
+                          src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
+                          onError={(e) => {
+                            e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
+                          }}
                           className="size-7 rounded-full object-cover shrink-0"
                         />
                         <div>
