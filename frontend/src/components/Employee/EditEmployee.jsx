@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
 import API_ENDPOINTS from "@/config/api";
-import axios from "axios";
+import api from "@/config/axios";
 
 const FormField = ({
   name,
@@ -94,7 +94,7 @@ const EditEmployee = ({
       dataToUpdate.append("picture", selectedPicture);
     }
     try {
-      const res = await axios.put(
+      const res = await api.put(
         `${API_ENDPOINTS.UPDATE_EMPLOYEE}/${formData.uid}`,
         dataToUpdate,
         {

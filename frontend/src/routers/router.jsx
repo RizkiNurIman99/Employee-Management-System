@@ -11,7 +11,7 @@ import App from "@/App.jsx";
 
 const router = createBrowserRouter([
   {
-    element: <App />, // ⬅️ App dipakai
+    element: <App />,
     children: [
       {
         element: <PublicRoute />,

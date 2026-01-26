@@ -132,6 +132,10 @@ const EmployeeTable = ({ data }) => {
                       <img
                         src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
                         onError={(e) => {
+                          console.log(
+                            "API BASE URL :",
+                            import.meta.env.VITE_IMAGE_BASE_URL,
+                          );
                           e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
                         }}
                         className="size-10 shrink-0 rounded-full object-cover"

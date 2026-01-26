@@ -18,11 +18,6 @@ export const attendance = async (req, res) => {
         .status(404)
         .json({ message: "Employee not found, please Register!!!" });
     }
-    const now = new Date();
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
 
     const existingEmployee = await TodaysAttendance.findOne({
       uid,
@@ -33,15 +28,17 @@ export const attendance = async (req, res) => {
     });
 
     if (!existingEmployee) {
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
+      const nowUtc = new Date();
+      const nowJakarta = utcToZonedTime(nowUtc, "Asia/Jakarta");
+
       const onTimeHour = 7;
       const onTimeMinute = 30;
 
       let status;
       if (
-        currentHour < onTimeHour ||
-        (currentHour === onTimeHour && currentMinute <= onTimeMinute)
+        nowJakarta.getHours() < onTimeHour ||
+        (nowJakarta.getHours() === onTimeHour &&
+          nowJakarta.getMinutes() <= onTimeMinute)
       ) {
         status = "On-Time";
       } else {
@@ -55,7 +52,7 @@ export const attendance = async (req, res) => {
         department: employee.department,
         role: employee.role,
         date: now,
-        clockIn: now,
+        clockIn: nowUtc,
         clockOut: null,
         status: status,
       });
