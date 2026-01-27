@@ -1,9 +1,9 @@
-import { now } from "mongoose";
 import Employee from "../models/employeeModel.js";
 import TodaysAttendance from "../models/todaysAttendance.js";
 import { emitSocketEvent } from "../utilities/socketInstance.js";
+import { startOfDay } from "date-fns";
+import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 
-// controller rfid for register user and attendance
 export const rfidScan = async (req, res) => {
   try {
     const { uid } = req.body;
@@ -21,19 +21,28 @@ export const rfidScan = async (req, res) => {
         .json({ message: "Employee not found, Please Register!!!" });
     }
 
-    const today = new Date();
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    const nowUtc = new Date();
+    const nowJakarta = utcToZonedTime(nowUtc, "Asia/Jakarta");
+
+    const attendanceDate = zonedTimeToUtc(
+      startOfDay(nowJakarta),
+      "Asia/Jakarta",
+    );
 
     const existingEmployee = await TodaysAttendance.findOne({
       uid,
-      date: {
-        $gte: start,
-        $lte: end,
-      },
+      date: attendanceDate,
     });
+
+    const onTimeHour = 7;
+    const onTimeMinute = 0;
+
+    let status =
+      nowJakarta.getHours() < onTimeHour ||
+      (nowJakarta.getHours() === onTimeHour &&
+        nowJakarta.getMinutes() <= onTimeMinute)
+        ? "On-Time"
+        : "Late";
 
     if (!existingEmployee) {
       const currentHour = today.getHours();
@@ -58,8 +67,8 @@ export const rfidScan = async (req, res) => {
         empId: employee.empId,
         department: employee.department,
         role: employee.role,
-        date: today,
-        clockIn: today,
+        date: attendanceDate,
+        clockIn: nowUtc,
         clockOut: null,
         status: status,
       });

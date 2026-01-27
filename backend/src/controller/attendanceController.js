@@ -1,6 +1,8 @@
 import Employee from "../models/employeeModel.js";
 import TodaysAttendance from "../models/todaysAttendance.js";
 import { emitSocketEvent } from "../utilities/socketInstance.js";
+import { startOfDay } from "date-fns";
+import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
 
 export const attendance = async (req, res) => {
   try {
@@ -19,31 +21,30 @@ export const attendance = async (req, res) => {
         .json({ message: "Employee not found, please Register!!!" });
     }
 
+    const nowUTC = new Date();
+    const nowJakarta = utcToZonedTime(nowUTC, "Asia/Jakarta");
+
+    const attendanceDate = zonedTimeToUtc(
+      startOfDay(nowJakarta),
+      "Asia/Jakarta",
+    );
+
     const existingEmployee = await TodaysAttendance.findOne({
       uid,
-      date: {
-        $gte: start,
-        $lte: end,
-      },
+      date: attendanceDate,
     });
 
+    const onTimeHour = 7;
+    const onTimeMinute = 30;
+
+    let status =
+      nowJakarta.getHours() < onTimeHour ||
+      (nowJakarta.getHours() === onTimeHour &&
+        nowJakarta.getMinutes() <= onTimeMinute)
+        ? "On-Time"
+        : "Late";
+
     if (!existingEmployee) {
-      const nowUtc = new Date();
-      const nowJakarta = utcToZonedTime(nowUtc, "Asia/Jakarta");
-
-      const onTimeHour = 7;
-      const onTimeMinute = 30;
-
-      let status;
-      if (
-        nowJakarta.getHours() < onTimeHour ||
-        (nowJakarta.getHours() === onTimeHour &&
-          nowJakarta.getMinutes() <= onTimeMinute)
-      ) {
-        status = "On-Time";
-      } else {
-        status = "Late";
-      }
       const newAttendance = new TodaysAttendance({
         uid: employee.uid,
         name: employee.name,
@@ -51,8 +52,8 @@ export const attendance = async (req, res) => {
         empId: employee.empId,
         department: employee.department,
         role: employee.role,
-        date: now,
-        clockIn: nowUtc,
+        date: attendanceDate,
+        clockIn: nowUTC,
         clockOut: null,
         status: status,
       });
