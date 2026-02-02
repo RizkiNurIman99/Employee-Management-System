@@ -26,7 +26,7 @@ const envFile =
     : ".env.development";
 dotenv.config({ path: envFile });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.development.PORT || 5000;
 
 const app = express();
 const server = http.createServer(app);
@@ -62,8 +62,6 @@ const io = new Server(server, {
 setSocketInstance(io);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-console.log(__dirname);
 
 app.use(
   "/storage/avatar",
