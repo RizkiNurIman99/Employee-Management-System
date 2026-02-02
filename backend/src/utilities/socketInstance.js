@@ -12,3 +12,10 @@ export const emitSocketEvent = (eventName, data) => {
     console.warn("Socket.IO instance is not set. Cannot emit event.");
   }
 };
+
+export const emitEvent = (event, payload) => {
+  if (process.env.DISABLE_SOCKET === "true") return;
+  if (!ioInstance) return;
+
+  ioInstance.emit(event, payload);
+};
