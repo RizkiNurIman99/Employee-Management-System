@@ -1,51 +1,35 @@
 import Employee from "../models/employeeModel.js";
 import TodaysAttendance from "../models/todaysAttendance.js";
-import { emitSocketEvent } from "../utilities/socketInstance.js";
-import { startOfDay } from "date-fns";
-import { utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
+import { emitEvent } from "../utilities/socketInstance.js";
+import {
+  getJakartaTime,
+  getAttendanceDate,
+  getAttendanceStatus,
+} from "../utils/time.js";
 
 export const attendance = async (req, res) => {
   try {
     const { uid } = req.body;
-    if (!uid) {
-      return res.status(400).json({ message: "Uid is required" });
-    }
+    if (!uid) return res.status(400).json({ message: "Uid is required" });
+
     const employee = await Employee.findOne({ uid });
     if (!employee) {
-      emitSocketEvent("unregistered-card-error", {
-        uid,
-        message: "This card is not registered to any employee.",
-      });
-      return res
-        .status(404)
-        .json({ message: "Employee not found, please Register!!!" });
+      emitEvent("unregistered-card-error", { uid });
+      return res.status(404).json({ message: "Employee not found" });
     }
 
-    const nowUTC = new Date();
-    const nowJakarta = utcToZonedTime(nowUTC, "Asia/Jakarta");
+    const { nowUtc, nowJakarta } = getJakartaTime();
+    const attendanceDate = getAttendanceDate(nowJakarta);
 
-    const attendanceDate = zonedTimeToUtc(
-      startOfDay(nowJakarta),
-      "Asia/Jakarta",
-    );
-
-    const existingEmployee = await TodaysAttendance.findOne({
+    const existing = await TodaysAttendance.findOne({
       uid,
       date: attendanceDate,
     });
 
-    const onTimeHour = 7;
-    const onTimeMinute = 30;
+    if (!existing) {
+      const status = getAttendanceStatus(nowJakarta);
 
-    let status =
-      nowJakarta.getHours() < onTimeHour ||
-      (nowJakarta.getHours() === onTimeHour &&
-        nowJakarta.getMinutes() <= onTimeMinute)
-        ? "On-Time"
-        : "Late";
-
-    if (!existingEmployee) {
-      const newAttendance = new TodaysAttendance({
+      const record = await TodaysAttendance.create({
         uid: employee.uid,
         name: employee.name,
         picture: employee.picture,
@@ -53,34 +37,25 @@ export const attendance = async (req, res) => {
         department: employee.department,
         role: employee.role,
         date: attendanceDate,
-        clockIn: nowUTC,
+        clockIn: nowUtc,
         clockOut: null,
-        status: status,
+        status,
       });
-      await newAttendance.save();
-      emitSocketEvent("attendance-recorded", newAttendance);
 
-      return res.status(201).json({
-        message: "Attendance recorded successfully",
-        attendance: newAttendance,
-      });
-    } else {
-      if (existingEmployee.clockOut) {
-        return res
-          .status(400)
-          .json({ message: "You have already checked in today" });
-      } else {
-        existingEmployee.clockOut = now;
-        await existingEmployee.save();
-        emitSocketEvent("attendance-updated", existingEmployee);
-
-        return res.status(200).json({
-          message: "Check Out succesfully",
-          attendance: existingEmployee,
-        });
-      }
+      emitEvent("attendance-recorded", record);
+      return res.status(201).json({ attendance: record });
     }
-  } catch (error) {
+
+    if (existing.clockOut) {
+      return res.status(400).json({ message: "Already checked out today" });
+    }
+
+    existing.clockOut = nowUtc;
+    await existing.save();
+    emitEvent("attendance-updated", existing);
+
+    return res.status(200).json({ attendance: existing });
+  } catch (err) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -121,23 +96,16 @@ export const getAttendanceEmployee = async (req, res) => {
 
 export const getAllTodaysAttendance = async (req, res) => {
   try {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    const { nowJakarta } = getJakartaTime();
+    const date = getAttendanceDate(nowJakarta);
 
-    const todaysAttendance = await TodaysAttendance.find({
-      date: {
-        $gte: start,
-        $lte: end,
-      },
-    }).sort({ clockIn: 1 });
-    res.status(200).json({
-      message: "Today's attendance fetched successfully",
-      attendance: todaysAttendance,
+    const attendance = await TodaysAttendance.find({ date }).sort({
+      clockIn: 1,
     });
+
+    res.status(200).json({ attendance });
   } catch (error) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -148,123 +116,10 @@ export const deleteAttendanceRecord = async (req, res) => {
     if (!deleteRecord) {
       return res.status(404).json({ message: "Data not Found" });
     }
-    emitSocketEvent("attendance-deleted", { id });
+    emitEvent("attendance-deleted", { id });
     return res.status(200).json({ message: "Data delete successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error", error });
-  }
-};
-
-export const checkIn = async (req, res) => {
-  try {
-    console.log("request body", req.body);
-    const { empId } = req.body;
-    if (!empId) {
-      return res.status(400).json({ message: "Please select employee" });
-    }
-    const employee = await Employee.findOne({ empId });
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
-    const now = new Date();
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
-    const existingAttendance = await TodaysAttendance.findOne({
-      empId,
-      date: { $gte: start, $lte: end },
-    });
-    if (!existingAttendance) {
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const onTimeHour = 7;
-      const onTimeMinute = 30;
-
-      let status;
-      if (
-        currentHour < onTimeHour ||
-        (currentHour === onTimeHour && currentMinute <= onTimeMinute)
-      ) {
-        status = "On-Time";
-      } else {
-        status = "Late";
-      }
-      const newAttendance = new TodaysAttendance({
-        uid: employee.uid,
-        name: employee.name,
-        picture: employee.picture,
-        empId: employee.empId,
-        department: employee.department,
-        role: employee.role,
-        date: now,
-        clockIn: now,
-        clockOut: null,
-        status: status,
-      });
-      await newAttendance.save();
-      emitSocketEvent("attendance-recorded", newAttendance);
-      console.log(
-        `Clock in : ${employee.name}, ${employee.empId} at ${newAttendance.clockIn} - ${status}`,
-      );
-
-      return res.status(201).json({
-        message: "Attendance recorded successfully",
-        attendance: newAttendance,
-      });
-    } else {
-      return res.status(400).json({
-        message: "Employee has already checked in today",
-        attendance: existingAttendance,
-      });
-    }
-  } catch (error) {
-    console.error("[ERROR MANUAL CHECK-IN]", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-export const checkOut = async (req, res) => {
-  try {
-    const { empId } = req.body;
-    if (!empId) {
-      return res.status(400).json({ message: "Employee ID is required" });
-    }
-
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
-    const existingAttendance = await TodaysAttendance.findOne({
-      empId,
-      date: { $gte: start, $lte: end },
-    });
-
-    if (!existingAttendance) {
-      return res.status(404).json({
-        message: "Check-in record not found for today. Cannot check out.",
-      });
-    }
-
-    if (existingAttendance.clockOut) {
-      return res
-        .status(400)
-        .json({ message: "Employee has already checked out" });
-    }
-
-    existingAttendance.clockOut = new Date();
-    await existingAttendance.save();
-    emitSocketEvent("attendance-updated", existingAttendance); // Kirim event ke frontend
-
-    return res.status(200).json({
-      message: "Check-out successful",
-      attendance: existingAttendance,
-    });
-  } catch (error) {
-    console.error("[ERROR MANUAL CHECK-OUT]", error);
-    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -314,7 +169,7 @@ export const markStatus = async (req, res) => {
     });
 
     await newAttendance.save();
-    emitSocketEvent("attendance-recorded", newAttendance);
+    emitEvent("attendance-recorded", newAttendance);
 
     return res.status(201).json({
       message: `Status for ${employee.name} marked as ${status}`,
@@ -322,68 +177,6 @@ export const markStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("[ERROR MARKING STATUS]", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-export const getManualAttend = async (req, res) => {
-  try {
-    const { type } = req.query;
-    if (!type) {
-      return res
-        .status(400)
-        .json({ message: "Query parameter 'type' is required" });
-    }
-
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-
-    let employees = [];
-    if (type === "not-checkedIn") {
-      const todaysAttendance = await TodaysAttendance.find({
-        date: {
-          $gte: start,
-          $lte: end,
-        },
-      });
-      const attendEmpIds = todaysAttendance.map((a) => a.empId);
-      employees = await Employee.find({
-        empId: { $nin: attendEmpIds },
-      })
-        .sort({ name: 1 })
-        .select("name empId picture");
-    } else if (type === "not-checkedOut") {
-      const notCheckedOut = await TodaysAttendance.find({
-        date: { $gte: start, $lte: end },
-        clockIn: { $ne: null },
-        clockOut: null,
-      }).select("empId");
-
-      const notCheckedOutIds = notCheckedOut.map((a) => a.empId);
-      employees = await Employee.find({
-        empId: { $in: notCheckedOutIds },
-      })
-        .sort({ name: 1 })
-        .select("name empId picture");
-    } else {
-      return res.status(400).json({
-        message:
-          "Invalid type. Use 'not-checkIn' or 'not-checkedout' as query parameter.",
-      });
-    }
-
-    return res.status(200).json({
-      type,
-      count: employees.length,
-      employees,
-    });
-  } catch (error) {
-    console.error(
-      `Error fetching manual attendance data for type '${type}':`,
-      error.message,
-    );
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
