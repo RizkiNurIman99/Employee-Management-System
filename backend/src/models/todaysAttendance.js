@@ -29,6 +29,8 @@ const todaysAttendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+todaysAttendanceSchema.index({ uid: 1, date: 1 }, { unique: true });
+
 const TodaysAttendance = mongoose.model(
   "TodaysAttendance",
   todaysAttendanceSchema

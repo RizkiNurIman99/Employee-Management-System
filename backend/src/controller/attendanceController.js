@@ -1,11 +1,14 @@
-import Employee from "../models/employeeModel.js";
-import TodaysAttendance from "../models/todaysAttendance.js";
-import { emitEvent } from "../utilities/socketInstance.js";
 import {
-  getJakartaTime,
   getAttendanceDate,
   getAttendanceStatus,
-} from "../utils/time.js";
+  getWibDayRange,
+  getWibTime,
+} from "../config/time.js";
+import Employee from "../models/employeeModel.js";
+import TodaysAttendance from "../models/todaysAttendance.js";
+import { emitSocketEvent } from "../utilities/socketInstance.js";
+
+const isDuplicateKeyError = (error) => error?.code === 11000;
 
 export const attendance = async (req, res) => {
   try {
@@ -14,11 +17,11 @@ export const attendance = async (req, res) => {
 
     const employee = await Employee.findOne({ uid });
     if (!employee) {
-      emitEvent("unregistered-card-error", { uid });
+      emitSocketEvent("unregistered-card-error", { uid });
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    const { nowUtc, nowJakarta } = getJakartaTime();
+    const { nowUtc, nowJakarta } = getWibTime();
     const attendanceDate = getAttendanceDate(nowJakarta);
 
     const existing = await TodaysAttendance.findOne({
@@ -29,21 +32,30 @@ export const attendance = async (req, res) => {
     if (!existing) {
       const status = getAttendanceStatus(nowJakarta);
 
-      const record = await TodaysAttendance.create({
-        uid: employee.uid,
-        name: employee.name,
-        picture: employee.picture,
-        empId: employee.empId,
-        department: employee.department,
-        role: employee.role,
-        date: attendanceDate,
-        clockIn: nowUtc,
-        clockOut: null,
-        status,
-      });
+      try {
+        const record = await TodaysAttendance.create({
+          uid: employee.uid,
+          name: employee.name,
+          picture: employee.picture,
+          empId: employee.empId,
+          department: employee.department,
+          role: employee.role,
+          date: attendanceDate,
+          clockIn: nowUtc,
+          clockOut: null,
+          status,
+        });
 
-      emitEvent("attendance-recorded", record);
-      return res.status(201).json({ attendance: record });
+        emitSocketEvent("attendance-recorded", record);
+        return res.status(201).json({ attendance: record });
+      } catch (error) {
+        if (isDuplicateKeyError(error)) {
+          return res.status(409).json({
+            message: "Attendance already recorded for today",
+          });
+        }
+        throw error;
+      }
     }
 
     if (existing.clockOut) {
@@ -52,7 +64,7 @@ export const attendance = async (req, res) => {
 
     existing.clockOut = nowUtc;
     await existing.save();
-    emitEvent("attendance-updated", existing);
+    emitSocketEvent("attendance-updated", existing);
 
     return res.status(200).json({ attendance: existing });
   } catch (err) {
@@ -75,6 +87,9 @@ export const getAttendanceEmployee = async (req, res) => {
     if (name) filter.name = name;
     if (empId) filter.empId = empId;
 
+    const { nowJakarta } = getWibTime();
+    const { start, end } = getWibDayRange(nowJakarta);
+
     const employee = await TodaysAttendance.findOne({
       ...filter,
       date: { $gte: start, $lte: end },
@@ -82,13 +97,12 @@ export const getAttendanceEmployee = async (req, res) => {
 
     if (employee) {
       return res.status(200).json({ exists: true, employee });
-    } else {
-      return res.status(404).json({
-        exists: false,
-        employee: null,
-        message: "Employee attendance not found.",
-      });
     }
+    return res.status(404).json({
+      exists: false,
+      employee: null,
+      message: "Employee attendance not found.",
+    });
   } catch (error) {
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -96,12 +110,12 @@ export const getAttendanceEmployee = async (req, res) => {
 
 export const getAllTodaysAttendance = async (req, res) => {
   try {
-    const { nowJakarta } = getJakartaTime();
-    const date = getAttendanceDate(nowJakarta);
+    const { nowJakarta } = getWibTime();
+    const { start, end } = getWibDayRange(nowJakarta);
 
-    const attendance = await TodaysAttendance.find({ date }).sort({
-      clockIn: 1,
-    });
+    const attendance = await TodaysAttendance.find({
+      date: { $gte: start, $lte: end },
+    }).sort({ clockIn: 1 });
 
     res.status(200).json({ attendance });
   } catch (error) {
@@ -116,7 +130,7 @@ export const deleteAttendanceRecord = async (req, res) => {
     if (!deleteRecord) {
       return res.status(404).json({ message: "Data not Found" });
     }
-    emitEvent("attendance-deleted", { id });
+    emitSocketEvent("attendance-deleted", { id });
     return res.status(200).json({ message: "Data delete successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Internal Server Error", error });
@@ -125,8 +139,6 @@ export const deleteAttendanceRecord = async (req, res) => {
 
 export const markStatus = async (req, res) => {
   try {
-    console.log("cek status :", req.body);
-
     const { empId, status } = req.body;
     if (!empId || !status) {
       return res
@@ -139,10 +151,9 @@ export const markStatus = async (req, res) => {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    const { nowJakarta } = getWibTime();
+    const { start, end } = getWibDayRange(nowJakarta);
+    const attendanceDate = getAttendanceDate(nowJakarta);
 
     const existingAttendance = await TodaysAttendance.findOne({
       empId,
@@ -162,14 +173,14 @@ export const markStatus = async (req, res) => {
       empId: employee.empId,
       department: employee.department,
       role: employee.role,
-      date: new Date(),
+      date: attendanceDate,
       status: status,
       clockIn: null,
       clockOut: null,
     });
 
     await newAttendance.save();
-    emitEvent("attendance-recorded", newAttendance);
+    emitSocketEvent("attendance-recorded", newAttendance);
 
     return res.status(201).json({
       message: `Status for ${employee.name} marked as ${status}`,

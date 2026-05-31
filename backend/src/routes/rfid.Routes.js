@@ -1,7 +1,7 @@
 import express from "express";
 import { rfidScan } from "../controller/rfidScan.js";
-import { rfidAuth } from "../auth/rfidAuth.js";
 import { rfidLimiter } from "../config/rateLimmiter.js";
+import { rfidAuth } from "../auth/rfidAuth.js";
 
 const router = express.Router();
 

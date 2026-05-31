@@ -10,13 +10,18 @@ export const getEmployees = async (req, res) => {
     if (name) filter.name = name;
     if (empId) filter.empId = empId;
 
-    const employees = await Employee.find(filter).sort({ createdAt: 1 });
+    console.log("Filter:", filter);
+    console.log("DB name:", Employee.db.name); // ← database apa yang dipakai
+    console.log("Collection:", Employee.collection.name);
 
+    const employees = await Employee.find(filter)
+      .collation({ locale: "en", numericOrdering: true })
+      .sort({ empId: 1 });
+    console.log("Result count:", employees.length);
     if (employees) {
       return res.status(200).json({ exists: true, employees });
-    } else {
-      return res.status(404).json({ exist: false, employees: [] });
     }
+    return res.status(404).json({ exist: false, employees: [] });
   } catch (error) {
     console.log("Internal Server Error", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -85,7 +90,7 @@ export const updateEmployee = async (req, res) => {
       updateData,
       {
         new: true,
-      }
+      },
     );
 
     res.status(200).json({ message: "Employee Updated", updatedEmployee });
@@ -99,11 +104,11 @@ export const updateEmployee = async (req, res) => {
 export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const employee = await Employee.findOneAndDelete(id);
+    const employee = await Employee.findByIdAndDelete(id);
     if (!employee) {
       return res.status(404).json({ error: "User not found" });
     }
-    emitSocketEvent("attendance-delete", { id });
+    emitSocketEvent("employee-deleted", { id });
     res.status(200).json({ message: "User deleted succesfully", employee });
   } catch (error) {
     console.log("Delete error", error);

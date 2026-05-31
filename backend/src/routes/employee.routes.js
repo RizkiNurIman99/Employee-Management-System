@@ -1,5 +1,4 @@
 import express from "express";
-import { getManualAttend } from "../controller/attendanceController.js";
 import {
   createEmployee,
   deleteEmployee,
@@ -15,7 +14,7 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get("/employees", protect, authorize("active"), getEmployees);
+router.get("/employees", authorize("active"), getEmployees);
 router.get("/employee/:uid", getEmployeeById);
 router.post(
   "/createEmployee",
@@ -25,6 +24,5 @@ router.post(
 );
 router.put("/updateEmployee/:uid", upload.single("picture"), updateEmployee);
 router.delete("/deleteEmployee/:id", deleteEmployee);
-router.get("/employees/manualAttend", getManualAttend);
 
 export default router;

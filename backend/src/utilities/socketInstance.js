@@ -1,21 +1,23 @@
+import { logInfo, logWarn } from "./logger.js";
+
 let ioInstance;
+
 export const setSocketInstance = (io) => {
   ioInstance = io;
-  console.log("Socket.IO instance set in socketInstance");
+  logInfo("Socket.IO instance set");
 };
 
 export const emitSocketEvent = (eventName, data) => {
-  if (ioInstance) {
-    ioInstance.emit(eventName, data);
-    console.log(`Event emitted: "${eventName}" with data:`, data);
-  } else {
-    console.warn("Socket.IO instance is not set. Cannot emit event.");
+  if (process.env.DISABLE_SOCKET === "true") return;
+  if (!ioInstance) {
+    logWarn("Socket.IO instance is not set. Cannot emit event.");
+    return;
   }
+
+  ioInstance.emit(eventName, data);
+  logInfo(`Event emitted: "${eventName}"`, data);
 };
 
-export const emitEvent = (event, payload) => {
-  if (process.env.DISABLE_SOCKET === "true") return;
-  if (!ioInstance) return;
-
-  ioInstance.emit(event, payload);
+export const emitEvent = (eventName, data) => {
+  emitSocketEvent(eventName, data);
 };

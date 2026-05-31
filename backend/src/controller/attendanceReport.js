@@ -1,6 +1,6 @@
 import TodaysAttendance from "../models/todaysAttendance.js";
 import { startOfDay, endOfDay } from "date-fns";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 export const getDailyReport = async (req, res) => {
   try {
@@ -8,8 +8,8 @@ export const getDailyReport = async (req, res) => {
 
     const jakartaDate = date ? new Date(`${date}T00:00:00`) : new Date();
 
-    const start = zonedTimeToUtc(startOfDay(jakartaDate), "Asia/Jakarta");
-    const end = zonedTimeToUtc(endOfDay(jakartaDate), "Asia/Jakarta");
+    const start = fromZonedTime(startOfDay(jakartaDate), "Asia/Jakarta");
+    const end = fromZonedTime(endOfDay(jakartaDate), "Asia/Jakarta");
 
     const record = await TodaysAttendance.find({
       date: {
