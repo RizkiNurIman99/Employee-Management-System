@@ -6,6 +6,7 @@ import { useTheme } from "../Hook/use-theme";
 import API_ENDPOINTS from "@/config/api";
 import logo from "../../assets/Logo/Logo.png";
 import api from "@/config/axios";
+import bannerLogin from "../../assets/images/bannerlogin.jpg";
 
 const Login = () => {
   const [username, setUserName] = useState("");
@@ -26,9 +27,6 @@ const Login = () => {
     "Responsive Dashboard",
     "Data Persistence",
   ];
-
-  const officeImage =
-    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80";
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,7 +71,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-[30%_70%] bg-white dark:bg-dark transition-colors duration-500 font-DMsans overflow-hidden">
-      {/* LEFT SIDE - FORM */}
       <div className="flex flex-col justify-between h-screen p-4 md:p-8 bg-white dark:bg-dark z-20 border-r border-slate-100 dark:border-zinc-800">
         <div className="flex justify-between items-center">
           <div className="flex">
@@ -156,9 +153,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE - OFFICE ATMOSPHERE */}
       <div className="hidden md:flex relative items-center justify-center p-8 bg-slate-50 dark:bg-[#0c0c0c]">
-        {/* Dekorasi Aksen */}
         <div className="absolute top-0 right-0 w-full h-full opacity-10 dark:opacity-[0.03] pointer-events-none">
           <svg width="100%" height="100%">
             <pattern
@@ -179,15 +174,13 @@ const Login = () => {
 
         <div className="relative z-10 w-full max-w-5xl">
           <div className="relative group overflow-hidden rounded-2xl shadow-2xl transition-transform duration-700 hover:scale-[1.01]">
-            {/* Overlay Gradient pada Gambar */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
             <img
-              src={officeImage}
+              src={bannerLogin}
               alt="Office Collaboration"
               className="w-full h-[600px] object-cover transition-transform duration-1000 group-hover:scale-110"
             />
 
-            {/* Konten Text di Atas Gambar */}
             <div className="absolute bottom-15 left-0 p-10 z-20 w-full">
               <div className="inline-block px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full mb-4 tracking-widest uppercase">
                 System Integrated

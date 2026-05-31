@@ -11,8 +11,23 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const storedAdmin = localStorage.getItem("admin");
     if (token && storedAdmin) {
-      setAdmin(JSON.parse(storedAdmin));
-      setIsAuthenticated(true);
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const isTokenExpired = payload?.exp
+          ? payload.exp * 1000 <= Date.now()
+          : true;
+
+        if (isTokenExpired) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("admin");
+        } else {
+          setAdmin(JSON.parse(storedAdmin));
+          setIsAuthenticated(true);
+        }
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("admin");
+      }
     }
     setLoading(false);
   }, []);

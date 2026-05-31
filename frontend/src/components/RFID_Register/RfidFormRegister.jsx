@@ -46,15 +46,26 @@ const RfidFormRegister = ({ onSuccess }) => {
       }));
 
       if (data.message) {
-        if (data.isRegistered) {
+        if (!data.isRegistered) {
           toast.error(data.message);
         } else {
           toast.success(data.message);
         }
       }
     };
+    const handleConnect = () => {
+      console.log("Socket connected", socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log("Socket disconected", socket.id);
+    };
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
     socket.on("uid-detected", handleUidDetected);
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.off("uid-detected", handleUidDetected);
     };
   }, []);

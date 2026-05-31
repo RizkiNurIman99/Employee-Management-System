@@ -1,27 +1,33 @@
-import React from "react";
-import { Construction, Clock } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import AdminForm from "@/components/Admin/AdminForm";
+import AdminTable from "@/components/Table/AdminTable";
+import API_ENDPOINTS from "@/config/api";
+import api from "@/config/axios";
+import toast from "react-hot-toast";
 
 const ManageUser = () => {
-  return (
-    <div className="flex flex-col items-center justify-center h-screen text-center p-6">
-      <div className="bg-white shadow-lg rounded-2xl p-10 flex flex-col items-center max-w-lg">
-        <Construction className="w-16 h-16 text-blue-500 mb-4" />
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Page Under Construction
-        </h1>
-        <p className="text-gray-600 mb-6">
-          We are currently working on this feature to make it available soon.
-          Thank you for your patience!
-        </p>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Clock className="w-4 h-4" />
-          <span>Update coming soon</span>
-        </div>
-      </div>
+  const [adminData, setAdminData] = useState([]);
 
-      <footer className="mt-10 text-gray-500 text-sm">
-        © {new Date().getFullYear()} - RFID Attendance System
-      </footer>
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const res = await api.get(API_ENDPOINTS.ADMINS);
+      setAdminData(res.data.admins);
+    } catch (error) {
+      toast.error("Error fetching admins");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdmins();
+  }, [fetchAdmins]);
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-DMsans font-bold text-gray-900 dark:text-white">
+        Manage Admins
+      </h1>
+      <AdminForm onSuccess={fetchAdmins} />
+      <AdminTable data={adminData} onUpdate={fetchAdmins} />
     </div>
   );
 };
