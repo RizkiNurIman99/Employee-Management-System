@@ -23,11 +23,15 @@ import { logError, logInfo } from "./src/utilities/logger.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const envFile =
-  process.env.NODE_ENV === "production"
-    ? ".env.production"
-    : ".env.development";
-dotenv.config({ path: envFile });
+// const envFile =
+//   process.env.NODE_ENV === "production"
+//     ? ".env.production"
+//     : ".env.development";
+// dotenv.config({ path: envFile });
+
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: ".env.development" });
+}
 
 const REQUIRED_ENV = ["MONGO_URI", "SECRET_KEY", "RFID_API_KEY", "CORS_ORIGIN"];
 const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]);
@@ -45,6 +49,7 @@ const allowedOrigins = process.env.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+console.log("Allowed origins:", allowedOrigins);
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
