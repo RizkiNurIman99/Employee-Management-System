@@ -7,6 +7,7 @@ const api = axios.create({
 console.log("BASE URL =", import.meta.env.VITE_API_BASE_URL);
 console.log("MODE =", import.meta.env.MODE);
 console.log("PRODUCTION BASE URL:", import.meta.env.VITE_API_BASE_URL);
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
