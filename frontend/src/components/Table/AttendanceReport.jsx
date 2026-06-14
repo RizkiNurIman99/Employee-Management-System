@@ -14,6 +14,7 @@ import { formattedDateShort, formatTime } from "@/config/formatDate";
 import api from "@/config/axios";
 import Option from "../Actions/Option";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
+import Avatar from "../Common/Avatar";
 
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
@@ -160,12 +161,10 @@ const AttendanceReport = () => {
                     className="font-DMsans text-sm md:text-base bg-light dark:bg-second_dark border-b border-b-gray-200  dark:border-b-surface_dark">
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
-                          onError={(e) => {
-                            e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
-                          }}
-                          className="size-7 rounded-full object-cover shrink-0"
+                        <Avatar
+                          src={user.picture}
+                          alt={user.name}
+                          className="size-10 shrink-0 rounded-full object-cover"
                         />
                         <div>
                           <p className="font-semibold text-dark dark:text-white">

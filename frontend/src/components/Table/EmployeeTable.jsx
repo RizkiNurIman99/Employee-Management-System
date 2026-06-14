@@ -11,6 +11,10 @@ import toast from "react-hot-toast";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
 import { formattedDateShort } from "@/config/formatDate";
 import api from "@/config/axios";
+import Avatar from "../Common/Avatar";
+
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+const DEFAULT_AVATAR = `${IMAGE_BASE_URL}/defult-avatar.png`;
 
 const EmployeeTable = ({ data }) => {
   const [loading, setLoading] = useState(true);
@@ -25,11 +29,12 @@ const EmployeeTable = ({ data }) => {
 
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+  const [imgSrc, setImgSrc] = useState(avatarURL);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
       setCurrentData(data);
-      console.log("Data received:", data);
     });
     return () => clearTimeout(timer);
   }, [data]);
@@ -129,15 +134,9 @@ const EmployeeTable = ({ data }) => {
                     className="font-DMsans text-sm md:text-base bg-light dark:bg-surface_dark border-b border-border dark:border-border last:border-none">
                     <td className="px-4 py-2 ">{user.uid}</td>
                     <td className="px-4 py-2 flex items-center gap-2 whitespace-nowrap">
-                      <img
-                        src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
-                        onError={(e) => {
-                          console.log(
-                            "API BASE URL :",
-                            import.meta.env.VITE_IMAGE_BASE_URL,
-                          );
-                          e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
-                        }}
+                      <Avatar
+                        src={user.picture}
+                        alt={user.name}
                         className="size-10 shrink-0 rounded-full object-cover"
                       />
                       <div className="flex flex-col">

@@ -11,6 +11,7 @@ import { Eye, Trash2 } from "lucide-react";
 import { attendanceTableColumns } from "../Constant";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
 import api from "@/config/axios";
+import Avatar from "../Common/Avatar";
 
 const StatusPill = ({ status }) => {
   const getStatusColor = () => {
@@ -152,12 +153,10 @@ const DashboardAttendance = ({ Data }) => {
                     {/* User info */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={`${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/${user.picture}`}
-                          onError={(e) => {
-                            e.target.src = `${import.meta.env.VITE_IMAGE_BASE_URL}/avatar/default-avatar.png`;
-                          }}
-                          className="size-7 rounded-full object-cover shrink-0"
+                        <Avatar
+                          src={user.picture}
+                          alt={user.name}
+                          className="size-10 shrink-0 rounded-full object-cover"
                         />
                         <div>
                           <p className="font-semibold text-dark dark:text-white">
