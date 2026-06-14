@@ -13,9 +13,6 @@ import { formattedDateShort } from "@/config/formatDate";
 import api from "@/config/axios";
 import Avatar from "../Common/Avatar";
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-const DEFAULT_AVATAR = `${IMAGE_BASE_URL}/defult-avatar.png`;
-
 const EmployeeTable = ({ data }) => {
   const [loading, setLoading] = useState(true);
   const [currentData, setCurrentData] = useState([]);
@@ -28,8 +25,6 @@ const EmployeeTable = ({ data }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const [itemsPerPage, setItemsPerPage] = useState(5);
-
-  const [imgSrc, setImgSrc] = useState(avatarURL);
 
   useEffect(() => {
     const timer = setTimeout(() => {
