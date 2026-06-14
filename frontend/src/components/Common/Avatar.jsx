@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 const DEFAULT_AVATAR = `${IMAGE_BASE_URL}/avatar/default-avatar.png`;
