@@ -4,12 +4,14 @@ import { now } from "mongoose";
 
 export const getWibTime = () => {
   let nowUtc = new Date();
-  if (process.env.MOCK_TIME) {
+
+  const isMockAllowed = process.env.NODE_ENV !== "production";
+
+  if (isMockAllowed && process.env.MOCK_TIME) {
     const [hour, minute] = process.env.MOCK_TIME.split(":").map(Number);
     const jakartaTime = toZonedTime(nowUtc, "Asia/Jakarta");
-
     jakartaTime.setHours(hour, minute, 0, 0);
-    nowUtc = fromZonedTime(jakartaTime, "Asia/Jakarta");
+    nowUtc = fromZonedTime(jakartaTime, "Asia/jakarta");
   }
   const nowJakarta = toZonedTime(nowUtc, "Asia/Jakarta");
   return { nowUtc, nowJakarta };
@@ -25,13 +27,17 @@ export const getWibDayRange = (nowJakarta) => {
   return { start, end };
 };
 
+const ENABLE_CHECKIN_TIME_LIMIT = false;
 export const isCheckInAllowed = (nowJakarta) => {
+  if (!ENABLE_CHECKIN_TIME_LIMIT) {
+    return true;
+  }
   const hour = nowJakarta.getHours();
   const minute = nowJakarta.getMinutes();
   const totalMinuntes = hour * 60 + minute;
 
-  const checkInOpen = 6 * 60 + 30; // 06:30 in minutes
-  const checkInClose = 7 * 60 + 45;
+  const checkInOpen = 6 * 60 + 30;
+  const checkInClose = 9 * 60;
 
   return totalMinuntes >= checkInOpen && totalMinuntes <= checkInClose;
 };

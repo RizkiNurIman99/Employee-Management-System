@@ -84,7 +84,7 @@ export const rfidScan = async (req, res) => {
             message: "You have already checked in",
           });
         }
-        throw error; // Re-throw other errors to be caught by the outer catch block
+        throw error;
       }
     }
 
