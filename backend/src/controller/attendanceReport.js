@@ -23,7 +23,6 @@ export const getDailyReport = async (req, res) => {
       record,
     });
   } catch (error) {
-    console.error("Error getting daily report:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

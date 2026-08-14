@@ -21,6 +21,8 @@ const deleteOldAvatar = (filename) => {
 
 export const getEmployees = async (req, res) => {
   try {
+    console.log("Raw query received:", JSON.stringify(req.uery));
+
     const { uid, name, empId } = req.query;
 
     const filter = {};
@@ -31,13 +33,12 @@ export const getEmployees = async (req, res) => {
     const employees = await Employee.find(filter)
       .collation({ locale: "en", numericOrdering: true })
       .sort({ empId: 1 });
-    console.log("Result count:", employees.length);
+
     if (employees.length > 0) {
       return res.status(200).json({ exists: true, employees });
     }
     return res.status(404).json({ exists: false, employees: [] });
   } catch (error) {
-    console.log("Internal Server Error", error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -46,7 +47,8 @@ export const getEmployeeById = async (req, res) => {
   try {
     const { uid } = req.params;
     const employee = await Employee.findOne({ uid });
-    if (!employee) return res.status(404).json("Employee not found");
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
     res.status(200).json({ message: "Employee Found", employee });
   } catch (error) {
     res.status(500).json("Internal Server Error");
@@ -56,16 +58,23 @@ export const getEmployeeById = async (req, res) => {
 export const createEmployee = async (req, res) => {
   try {
     const { uid, name, empId, department, role } = req.body;
-    const picture = req.file ? req.file.filename : "default-avatar.png";
+
     if (!uid || !name || !empId || !department || !role) {
+      if (req.file) {
+        deleteOldAvatar(req.file.filename);
+      }
       return res.status(400).json({ error: "Please fill in all fields." });
     }
     const existingEmployee = await Employee.findOne({ uid });
     if (existingEmployee) {
+      if (req.file) {
+        deleteOldAvatar(req.file.filename);
+      }
       return res
         .status(400)
         .json({ error: "User with this UID already exists." });
     }
+    const picture = req.file ? req.file.filename : "default-avatar.png";
 
     const newEmployee = new Employee({
       uid,
