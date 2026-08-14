@@ -29,7 +29,7 @@ import { fileURLToPath } from "url";
 //     : ".env.development";
 // dotenv.config({ path: envFile });
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "development") {
   dotenv.config({ path: ".env.development" });
 } else {
   dotenv.config({ path: ".env" });
