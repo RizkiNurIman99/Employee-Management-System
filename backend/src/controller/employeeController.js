@@ -21,25 +21,31 @@ const deleteOldAvatar = (filename) => {
 
 export const getEmployees = async (req, res) => {
   try {
-    console.log("Raw query received:", JSON.stringify(req.uery));
-
     const { uid, name, empId } = req.query;
 
     const filter = {};
+
     if (uid) filter.uid = uid;
     if (name) filter.name = name;
     if (empId) filter.empId = empId;
 
     const employees = await Employee.find(filter)
-      .collation({ locale: "en", numericOrdering: true })
+      .collation({
+        locale: "en",
+        numericOrdering: true,
+      })
       .sort({ empId: 1 });
 
-    if (employees.length > 0) {
-      return res.status(200).json({ exists: true, employees });
-    }
-    return res.status(404).json({ exists: false, employees: [] });
+    return res.status(200).json({
+      exists: employees.length > 0,
+      employees,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("getEmployees error:", error);
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+    });
   }
 };
 
