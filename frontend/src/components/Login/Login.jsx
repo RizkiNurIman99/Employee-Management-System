@@ -54,7 +54,6 @@ const Login = () => {
         username,
         password,
       });
-      console.log("response login", response);
 
       login(response.data);
       navigate(from, { replace: true });
