@@ -23,13 +23,7 @@ import { logError, logInfo } from "./src/utilities/logger.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// const envFile =
-//   process.env.NODE_ENV === "production"
-//     ? ".env.production"
-//     : ".env.development";
-// dotenv.config({ path: envFile });
-
-if (process.env.NODE_ENV !== "development") {
+if (process.env.NODE_ENV === "development") {
   dotenv.config({ path: ".env.development" });
 } else {
   dotenv.config({ path: ".env" });
@@ -51,7 +45,6 @@ const allowedOrigins = process.env.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-console.log("Allowed origins:", allowedOrigins);
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
@@ -175,25 +168,21 @@ const isExistingBackendRunning = () =>
 
 const shutdown = async (signal) => {
   logInfo(`${signal} received, shutting down server`);
-
   if (!server.listening) {
     process.exit(0);
     return;
   }
-
   server.close(async (error) => {
     if (error) {
       logError("Error during server shutdown", error);
       process.exit(1);
       return;
     }
-
     try {
       await mongoose.connection.close(false);
     } catch (dbError) {
       logError("Error during DB shutdown", dbError);
     }
-
     process.exit(0);
   });
 };
@@ -209,7 +198,6 @@ server.on("error", async (error) => {
       process.exit(0);
       return;
     }
-
     logError(
       `Port ${PORT} is already in use by another process. Stop that process or set PORT in your environment and update the frontend VITE_* URLs to match.`,
     );
