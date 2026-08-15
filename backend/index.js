@@ -26,7 +26,7 @@ import { fileURLToPath } from "url";
 if (process.env.NODE_ENV === "development") {
   dotenv.config({ path: ".env.development" });
 } else {
-  dotenv.config({ path: ".env" });
+  dotenv.config({ path: ".env.production" });
 }
 
 const REQUIRED_ENV = ["MONGO_URI", "SECRET_KEY", "RFID_API_KEY", "CORS_ORIGIN"];

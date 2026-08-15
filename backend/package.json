@@ -7,9 +7,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "dev": "nodemon index.js",
+    "dev": "nodemon --env-file=.env.development index.js",
     "seed": "node src/scripts/seedAdmin.js",
-    "start": "node index.js"
+    "start": "node --env-file=.env.production index.js"
   },
   "engines": {
     "node": ">=20 <21"
