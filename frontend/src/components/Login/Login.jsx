@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 import { LuMoon, LuSun, LuUser, LuLock } from "react-icons/lu";
-import { useTheme } from "../Hook/use-theme";
+import { useTheme } from "../../Hook/use-theme";
 import API_ENDPOINTS from "@/config/api";
 import logo from "../../assets/Logo/Logo.png";
 import api from "@/config/axios";

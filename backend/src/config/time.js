@@ -1,6 +1,5 @@
 import { startOfDay, endOfDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import { now } from "mongoose";
 
 export const getWibTime = () => {
   let nowUtc = new Date();

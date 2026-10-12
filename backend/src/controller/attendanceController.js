@@ -119,6 +119,7 @@ export const getAllTodaysAttendance = async (req, res) => {
 
     res.status(200).json({ attendance });
   } catch (error) {
+    console.error("[ERROR getAllTodaysAttendance]", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

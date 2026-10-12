@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { attendanceTableColumns } from "../Constant";
+import { attendanceTableColumns } from "../../Constant";
 import Loading from "../Loading/Loading";
 import { Download, Eye, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -14,7 +14,7 @@ import { formattedDateShort, formatTime } from "@/config/formatDate";
 import api from "@/config/axios";
 import Option from "../Actions/Option";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
-import Avatar from "../Common/Avatar";
+import Avatar from "../../Common/Avatar";
 
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);

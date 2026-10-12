@@ -35,6 +35,7 @@ export const getEmployees = async (req, res) => {
         numericOrdering: true,
       })
       .sort({ empId: 1 });
+    console.log("employee", employees);
 
     return res.status(200).json({
       exists: employees.length > 0,

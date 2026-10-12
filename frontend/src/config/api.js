@@ -17,6 +17,7 @@ const API_ENDPOINTS = {
   GET_ALL_TODAYS_ATTENDANCE: "/attendance/attendances",
   DELETE_ATTENDANCE_RECORD: "/attendance/delete-record",
   DAILY_REPORT: "/attendance-report/daily-report",
+  DISPLAY_ATTENDANCE: "/display/today",
 };
 
 export default API_ENDPOINTS;

@@ -8,11 +8,16 @@ import PrivateRoute from "../components/Login/PrivateRoute.jsx";
 import Login from "@/components/Login/Login.jsx";
 import PublicRoute from "@/components/Login/PublicRoute.jsx";
 import App from "@/App.jsx";
+import Display from "@/pages/Display.jsx";
 
 const router = createBrowserRouter([
   {
     element: <App />,
     children: [
+      {
+        path: "attendance-display",
+        element: <Display />,
+      },
       {
         element: <PublicRoute />,
         children: [{ path: "/login", element: <Login /> }],

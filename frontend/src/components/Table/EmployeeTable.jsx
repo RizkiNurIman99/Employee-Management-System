@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import TablePagination from "../Pagination/TablePagination";
-import { employeeColumns } from "../Constant";
+import { employeeColumns } from "../../Constant";
 import Loading from "../Loading/Loading";
 import ViewUser from "../Employee/ViewUser";
 import Option from "../Actions/Option";
@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
 import { formattedDateShort } from "@/config/formatDate";
 import api from "@/config/axios";
-import Avatar from "../Common/Avatar";
+import Avatar from "../../Common/Avatar";
 
 const EmployeeTable = ({ data }) => {
   const [loading, setLoading] = useState(true);
@@ -49,9 +49,7 @@ const EmployeeTable = ({ data }) => {
         `${API_ENDPOINTS.UPDATE_EMPLOYEE}/${updateUser.uid}`,
         updateUser,
       );
-
       const updated = res.data.updatedEmployee;
-
       setCurrentData((prevData) =>
         prevData.map((user) => (user.uid === updated.uid ? updated : user)),
       );

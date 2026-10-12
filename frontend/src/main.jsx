@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router";
 import router from "./routers/router";
-import { ThemeProvider } from "./components/Context/theme-context";
-import { AuthProvider } from "./components/Context/AuthContext";
+import { ThemeProvider } from "./Context/theme-context";
+import { AuthProvider } from "./Context/AuthContext";
 import { Toaster } from "react-hot-toast";
 
 createRoot(document.getElementById("root")).render(

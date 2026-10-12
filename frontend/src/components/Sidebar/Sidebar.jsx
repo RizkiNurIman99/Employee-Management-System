@@ -1,10 +1,10 @@
 import React, { forwardRef } from "react";
 import { Link, NavLink } from "react-router";
-import { navbarLinks } from "../Constant";
+import { navbarLinks } from "../../Constant";
 
 import logo from "../../assets/Logo/Logo.png";
 import logoIcon from "../../assets/Logo/Logo Icon.png";
-import { useTheme } from "../Context/theme-context";
+import { useTheme } from "../../Context/theme-context";
 
 const Sidebar = forwardRef(({ collapsed }, ref) => {
   const { theme } = useTheme();

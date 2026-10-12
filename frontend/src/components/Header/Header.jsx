@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeftToLine, LogOut, UserCircle2Icon } from "lucide-react";
 import { LuBell, LuMoon, LuSun } from "react-icons/lu";
-import { useTheme } from "../Hook/use-theme";
-import { useAuth } from "../Context/AuthContext";
+import { useTheme } from "../../Hook/use-theme";
+import { useAuth } from "../../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Header = ({ collapsed, setCollapsed }) => {
