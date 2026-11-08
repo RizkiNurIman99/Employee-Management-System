@@ -19,7 +19,6 @@ export const getTodayForDisplay = async (req, res) => {
     })
       .select("name picture empId department status clockIn clockOut")
       .sort({ clockIn: -1 })
-      .limit(50)
       .lean();
 
     res.status(200).json(rows);

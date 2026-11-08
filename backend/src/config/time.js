@@ -1,28 +1,22 @@
 import { startOfDay, endOfDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
+const TIMEZONE = "Asia/Jakarta";
+
 export const getWibTime = () => {
   let nowUtc = new Date();
+  let nowJakarta = toZonedTime(nowUtc, TIMEZONE);
 
-  const isMockAllowed = process.env.NODE_ENV !== "production";
-
-  if (isMockAllowed && process.env.MOCK_TIME) {
-    const [hour, minute] = process.env.MOCK_TIME.split(":").map(Number);
-    const jakartaTime = toZonedTime(nowUtc, "Asia/Jakarta");
-    jakartaTime.setHours(hour, minute, 0, 0);
-    nowUtc = fromZonedTime(jakartaTime, "Asia/jakarta");
-  }
-  const nowJakarta = toZonedTime(nowUtc, "Asia/Jakarta");
   return { nowUtc, nowJakarta };
 };
 
 export const getAttendanceDate = (nowJakarta) =>
-  fromZonedTime(startOfDay(nowJakarta), "Asia/Jakarta");
+  fromZonedTime(startOfDay(nowJakarta), TIMEZONE);
 
 export const getWibDayRange = (nowJakarta) => {
   const base = nowJakarta ?? getWibTime().nowJakarta;
-  const start = fromZonedTime(startOfDay(base), "Asia/Jakarta");
-  const end = fromZonedTime(endOfDay(base), "Asia/Jakarta");
+  const start = fromZonedTime(startOfDay(base), TIMEZONE);
+  const end = fromZonedTime(endOfDay(base), TIMEZONE);
   return { start, end };
 };
 

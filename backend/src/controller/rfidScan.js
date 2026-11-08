@@ -2,17 +2,30 @@ import {
   getAttendanceDate,
   getAttendanceStatus,
   getWibTime,
-  isCheckInAllowed,
 } from "../config/time.js";
 import Employee from "../models/employeeModel.js";
 import TodaysAttendance from "../models/todaysAttendance.js";
 import { emitSocketEvent } from "../utilities/socketInstance.js";
 
 const isDuplicateKeyError = (error) => error?.code === 11000;
+const CHECK_IN_START = 6 * 60 + 30;
+const CHECK_IN_END = 9 * 60;
+const CHECK_OUT_START = 13 * 60;
+
+const getMinutesofDay = (date) => {
+  return date.getHours() * 60 + date.getMinutes();
+};
+const isCheckInTimeAllowed = (date) => {
+  const minutes = getMinutesofDay(date);
+  return minutes >= CHECK_IN_START && minutes <= CHECK_IN_END;
+};
+const isCheckOutTimeAllowed = (date) => {
+  return getMinutesofDay(date) >= CHECK_OUT_START;
+};
 
 export const rfidScan = async (req, res) => {
   try {
-    const { uid, mockTime } = req.body;
+    const { uid } = req.body;
 
     if (!uid) {
       return res.status(400).json({ message: "UID is required" });
@@ -46,17 +59,22 @@ export const rfidScan = async (req, res) => {
 
     // ================= CHECK-IN =================
     if (!existingEmployee) {
-      if (!isCheckInAllowed(nowJakarta)) {
-        const hour = nowJakarta.getHours();
-        const minute = nowJakarta.getMinutes();
-        const totalMinutes = hour * 60 + minute;
+      const minutes = getMinutesofDay(nowJakarta);
 
-        const message =
-          totalMinutes < 6 * 60 + 30
-            ? "Check-in is not open yet. Please come back at 06:30 WIB."
-            : "Check-in is closed. Please come back tomorrow.";
+      if (minutes < CHECK_IN_START) {
+        const message = "Attendance time start in 06.30 WIB.";
         emitSocketEvent("checkin-recorded", { uid, message });
         return res.status(400).json({ message });
+      }
+
+      if (!isCheckInTimeAllowed(nowJakarta)) {
+        const message =
+          "Attendance close, Please contact administrator for presence confirm.";
+
+        emitSocketEvent("checkin-recorded", { uid, message });
+        return res
+          .status(400)
+          .json({ message, code: "CHECK_IN_CLOSED", action: "CONTACT_ADMIN" });
       }
       const status = getAttendanceStatus(nowJakarta);
       try {
@@ -89,9 +107,18 @@ export const rfidScan = async (req, res) => {
     }
 
     // ================= CHECK-OUT =================
+
     if (existingEmployee.clockOut) {
       return res.status(400).json({
         message: "You have already checked out",
+      });
+    }
+    if (!isCheckOutTimeAllowed(nowJakarta)) {
+      const message = "Check-out open in 13.00 WIB";
+      emitSocketEvent("checkout-recorded", { uid, message });
+      return res.status(400).json({
+        message,
+        code: "CHECK-OUT_NOT_OPEN",
       });
     }
 
