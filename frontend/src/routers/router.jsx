@@ -3,12 +3,12 @@ import Dashboard from "../pages/Dashboard.jsx";
 import Attendance from "../pages/Attendance.jsx";
 import Employee from "../pages/Employee.jsx";
 import ManageUser from "../pages/ManageUser.jsx";
-import DashboardLayout from "@/components/Dashboard/DashboardLayout.jsx";
 import PrivateRoute from "../components/Login/PrivateRoute.jsx";
 import Login from "@/components/Login/Login.jsx";
 import PublicRoute from "@/components/Login/PublicRoute.jsx";
 import App from "@/App.jsx";
 import Display from "@/pages/Display.jsx";
+import MainLayout from "@/components/Layout/MainLayout.jsx";
 
 const router = createBrowserRouter([
   {
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
         element: <PrivateRoute />,
         children: [
           {
-            element: <DashboardLayout />,
+            element: <MainLayout />,
             children: [
               { index: true, element: <Dashboard /> },
               { path: "dashboard", element: <Dashboard /> },

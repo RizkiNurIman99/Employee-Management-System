@@ -1,13 +1,19 @@
-export const formatTime = (isoString) => {
-  if (!isoString) {
-    return "---";
-  }
-  const date = new Date(isoString);
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(date);
+const formatterTime = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+  timeZone: "Asia/Jakarta",
+});
+
+export const formatTime = (value) => {
+  if (!value) return "---";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "---";
+
+  return formatterTime.format(date);
 };
 
 export const formattedDateLong = (dateString) => {

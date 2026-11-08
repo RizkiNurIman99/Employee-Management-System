@@ -13,9 +13,7 @@ import { formattedDateShort } from "@/config/formatDate";
 import api from "@/config/axios";
 import Avatar from "../../Common/Avatar";
 
-const EmployeeTable = ({ data }) => {
-  const [loading, setLoading] = useState(true);
-  const [currentData, setCurrentData] = useState([]);
+const EmployeeTable = ({ data = [], loading = false, onRefresh }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewUser, setViewUser] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,14 +23,6 @@ const EmployeeTable = ({ data }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const [itemsPerPage, setItemsPerPage] = useState(5);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-      setCurrentData(data);
-    });
-    return () => clearTimeout(timer);
-  }, [data]);
 
   const handleViewUser = (user) => {
     setSelectedUser(user);
@@ -49,10 +39,7 @@ const EmployeeTable = ({ data }) => {
         `${API_ENDPOINTS.UPDATE_EMPLOYEE}/${updateUser.uid}`,
         updateUser,
       );
-      const updated = res.data.updatedEmployee;
-      setCurrentData((prevData) =>
-        prevData.map((user) => (user.uid === updated.uid ? updated : user)),
-      );
+      await onRefresh?.();
       setTimeout(() => {
         toast.success("User updated successfully");
       }, 1500);
@@ -71,9 +58,7 @@ const EmployeeTable = ({ data }) => {
     const toastId = toast.loading("Delete Employee .... ");
     try {
       await api.delete(`${API_ENDPOINTS.DELETE_EMPLOYEE}/${deleteUser._id}`);
-      setCurrentData((prevData) =>
-        prevData.filter((employee) => employee._id !== deleteUser._id),
-      );
+      await onRefresh?.();
       toast.success("Data has been deleted", { id: toastId });
     } catch (error) {
       toast.error("failed to delete data", { id: toastId });
@@ -88,9 +73,13 @@ const EmployeeTable = ({ data }) => {
     setCurrentPage(1);
   };
 
-  const lastItemIndex = currentPage * itemsPerPage;
+  const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
+  const page = Math.min(currentPage, totalPages);
+  const lastItemIndex = page * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
-  const paginatedData = currentData.slice(firstItemIndex, lastItemIndex);
+  const paginatedData = data.slice(firstItemIndex, lastItemIndex);
+
+  const colCount = employeeColumns.length;
 
   return (
     <div>
@@ -106,85 +95,78 @@ const EmployeeTable = ({ data }) => {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colSpan="10" className="text-center">
-                {loading && <Loading />}
-              </td>
-            </tr>
-            {!loading &&
-              (paginatedData.length === 0 ? (
-                <tr className="w-full">
-                  <td
-                    colSpan="10"
-                    className="text-center py-4 font-DMsans text-base font-medium">
-                    Attendance data is not available
+            {loading ? (
+              <tr>
+                <td colSpan={colCount} className="text-center">
+                  <Loading />
+                </td>
+              </tr>
+            ) : paginatedData.length === 0 ? (
+              <tr className="w-full">
+                <td
+                  colSpan="10"
+                  className="text-center py-4 font-DMsans text-base font-medium">
+                  Employee data is not available
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((user) => (
+                <tr
+                  key={user._id}
+                  className="font-DMsans text-sm md:text-base bg-light dark:bg-surface_dark border-b border-border dark:border-border last:border-none">
+                  <td className="px-4 py-2 ">{user.uid}</td>
+                  <td className="px-4 py-2 flex items-center gap-2 whitespace-nowrap">
+                    <Avatar
+                      src={user.picture}
+                      alt={user.name}
+                      className="size-10 shrink-0 rounded-full object-cover"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-base font-dark dark:font-light font-bold">
+                        {user.name}
+                      </span>
+                      <span className="text-sm text-gray-500">{user.role}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">{user.empId}</td>
+                  <td className="px-4 py-2">{user.department}</td>
+                  <td className="px-4 py-2">
+                    {formattedDateShort(user.createdAt)}
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    <Option
+                      menuItem={[
+                        {
+                          label: "View",
+                          icon: Eye,
+                          onClick: () => {
+                            handleViewUser(user);
+                          },
+                        },
+                        {
+                          label: "Edit",
+                          icon: PenBoxIcon,
+                          onClick: () => {
+                            handleEditUser(user);
+                          },
+                        },
+                        {
+                          label: "delete",
+                          icon: Trash2,
+                          onClick: () => handleDeleteUser(user),
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
-              ) : (
-                paginatedData.map((user, idx) => (
-                  <tr
-                    key={idx}
-                    className="font-DMsans text-sm md:text-base bg-light dark:bg-surface_dark border-b border-border dark:border-border last:border-none">
-                    <td className="px-4 py-2 ">{user.uid}</td>
-                    <td className="px-4 py-2 flex items-center gap-2 whitespace-nowrap">
-                      <Avatar
-                        src={user.picture}
-                        alt={user.name}
-                        className="size-10 shrink-0 rounded-full object-cover"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-base font-dark dark:font-light font-bold">
-                          {user.name}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {user.role}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {user.empId}
-                    </td>
-                    <td className="px-4 py-2">{user.department}</td>
-                    <td className="px-4 py-2">
-                      {formattedDateShort(user.createdAt)}
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <Option
-                        menuItem={[
-                          {
-                            label: "View",
-                            icon: Eye,
-                            onClick: () => {
-                              console.log("view user");
-
-                              handleViewUser(user);
-                            },
-                          },
-                          {
-                            label: "Edit",
-                            icon: PenBoxIcon,
-                            onClick: () => {
-                              handleEditUser(user);
-                            },
-                          },
-                          {
-                            label: "delete",
-                            icon: Trash2,
-                            onClick: () => handleDeleteUser(user),
-                          },
-                          ,
-                        ]}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <TablePagination
         currentPage={currentPage}
-        totalItems={currentData.length}
+        totalItems={data.length}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={handleItemsPerPageChange}

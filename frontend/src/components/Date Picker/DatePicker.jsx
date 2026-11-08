@@ -24,7 +24,7 @@ const DatePicker = ({ onDataChange }) => {
   };
 
   return (
-    <div className="flex gap-5 font-DMsans">
+    <div className="flex gap-5 font-DMsans w-full">
       <Label>Select Date :</Label>
       <div className="flex items-center gap-2 relative">
         <Input

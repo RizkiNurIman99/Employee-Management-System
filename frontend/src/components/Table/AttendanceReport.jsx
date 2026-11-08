@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { attendanceTableColumns } from "../../Constant";
+import React, { useEffect, useMemo, useState } from "react";
+import { attendanceTableColumns, DEPARTMENTS } from "../../Constant";
 import Loading from "../Loading/Loading";
 import { Download, Eye, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -15,6 +15,7 @@ import api from "@/config/axios";
 import Option from "../Actions/Option";
 import ConfirmationDialog from "../Actions/ConfirmationDialog";
 import Avatar from "../../Common/Avatar";
+import SelectDepartment from "../Select/SelectDepartment";
 
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,7 @@ const AttendanceReport = () => {
   const [viewUser, setViewUser] = useState(false);
   const [deleteUser, setDeleteUser] = useState(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [department, setDepartment] = useState("all");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -52,6 +54,13 @@ const AttendanceReport = () => {
     fetchAttendance();
   }, [selectedDate]);
 
+  const filteredData = useMemo(() => {
+    if (department === "all") {
+      return currentData;
+    }
+    return currentData.filter((record) => record.department === department);
+  }, [currentData, department]);
+
   const handleViewUser = (user) => {
     setSelectedUser(user);
     setViewUser(true);
@@ -62,8 +71,8 @@ const AttendanceReport = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!userToDelete) return;
-    const toastId = toast.loading("Delete data ....");
+    if (!deleteUser) return;
+    const toastId = toast.loading("Deleting attendance data ....");
     try {
       await api.delete(
         `${API_ENDPOINTS.DELETE_ATTENDANCE_RECORD}/${userToDelete._id}`,
@@ -81,9 +90,9 @@ const AttendanceReport = () => {
   };
 
   const exportExcle = () => {
-    if (currentData.length === 0) return toast.error("No Data to Export");
+    if (filteredData.length === 0) return toast.error("No Data to Export");
 
-    const worksheet = XLSX.utils.json_to_sheet(currentData);
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Report");
 
@@ -92,7 +101,10 @@ const AttendanceReport = () => {
       type: "array",
     });
     const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(file, `Attendance_Daily_${new Date().toLocaleDateString()}.xlsx`);
+    saveAs(
+      file,
+      `Attendance_Daily_${department === "all" ? "All" : department}_${new Date().toLocaleDateString("en-CA")}.xlsx`,
+    );
   };
 
   const handleDateChange = (date) => {
@@ -101,7 +113,7 @@ const AttendanceReport = () => {
 
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
-  const paginatedData = currentData.slice(firstItemIndex, lastItemIndex);
+  const paginatedData = filteredData.slice(firstItemIndex, lastItemIndex);
 
   return (
     <div className="pb-6 h-screen">
@@ -114,17 +126,31 @@ const AttendanceReport = () => {
           </p>
         </div>
       </div>
-      <div className="flex items-center justify-between pb-5">
-        <DatePicker onDataChange={handleDateChange} />
-        <Button
-          variant="outline"
-          onClick={exportExcle}
-          className="text-base font-DMsans text-dark dark:text-light border border-border dark:border-border ">
-          <span>
-            <Download />
-          </span>
-          Export
-        </Button>
+      <div className="flex flex-col gap-3 pb-5 md:flex-row md:items-center md:justify-between">
+        <div className="w-full min-w-0 md:max-w-xs">
+          <SelectDepartment
+            departments={DEPARTMENTS}
+            value={department}
+            onChange={(value) => {
+              setDepartment(value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] md:flex md:shrink-0 md:items-center">
+          <div className="min-w-0">
+            <DatePicker onDataChange={handleDateChange} />
+          </div>
+          <Button
+            variant="outline"
+            onClick={exportExcle}
+            className="w-full gap-2 border border-border font-DMsans text-base text-dark dark:text-light sm:w-auto">
+            <span>
+              <Download size={18} />
+            </span>
+            Export
+          </Button>
+        </div>
       </div>
       <div className="border border-border overflow-x-auto rounded-md dark:border-border ">
         <table className="w-full table-auto font-DMsans text-base bg-white dark:bg-secondary">
@@ -217,7 +243,7 @@ const AttendanceReport = () => {
       </div>
       <TablePagination
         currentPage={currentPage}
-        totalItems={currentData.length}
+        totalItems={filteredData.length}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
       />

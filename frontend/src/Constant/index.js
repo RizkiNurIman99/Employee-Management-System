@@ -30,6 +30,11 @@ export const navbarLinks = [
   },
 ];
 
+export const DEPARTMENTS = [
+  { value: "SD IT Insan Sejahtera", label: "SD IT Insan Sejahtera" },
+  { value: "SMP IT Insan Sejahtera", label: "SMP IT Insan Sejahtera" },
+];
+
 export const employeeColumns = [
   { label: "UID", key: "uid" },
   { label: "Name", key: "name" },

@@ -10,27 +10,17 @@ import socket from "@/config/socket";
 import toast from "react-hot-toast";
 import Avatar from "@/Common/Avatar";
 import { cn } from "@/lib/utils";
-import avatar from "../../src/assets/avatar/avatar.jpg";
 import api from "@/config/axios";
+import API_ENDPOINTS from "@/config/api";
 
-// Dummy attendance
-// Nanti diganti dengan data dari Socket.io
-const dummyAttendance = {
-  _id: "dummy-attendance-001",
-  name: "Budi Santoso",
-  empId: "EMP001",
-  department: "IT",
-  picture: avatar,
-  clockIn: "2026-10-09T00:42:18.000Z",
-  clockOut: null,
-  status: "On-Time",
-  attendanceType: "CHECK-IN",
-};
+const displayKey =
+  new URLSearchParams(window.location.search).get("key") ??
+  import.meta.env.VITE_DISPLAY_KEY;
 
 const Display = () => {
   const { theme, setTheme } = useTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [attendance, setAttendance] = useState(dummyAttendance);
+  const [attendance, setAttendance] = useState(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,28 +34,31 @@ const Display = () => {
 
   useEffect(() => {
     let active = true;
-    let hasLoaded = false;
-    let hasShownError = false;
+    let isFetching = false;
+    const fetchDataAttendance = async () => {
+      if (isFetching) return;
+      isFetching = true;
 
-    const fetchTodayAttendance = async () => {
       try {
-        const response = await api.get("/display/today", {
-          headers: { "x-display-key": import.meta.env.VITE_DISPLAY_KEY },
+        const res = await api.get(API_ENDPOINTS.DISPLAY_ATTENDANCE, {
+          headers: { "x-display-key": displayKey },
         });
-
+        console.log("status :", res.status);
+        console.log("Array :", Array.isArray(res.data));
         if (!active) return;
-        const rows = Array.isArray(response.data) ? response.data : [];
+        const rows = Array.isArray(res.data) ? res.data : [];
+        setAttendance(rows);
+        console.log("jumlah", rows.length);
 
         const latestAttendance = rows
           .map((record) => {
             const clockInTime = record.clockIn
-              ? new Date(record.clockOut).getTime()
+              ? new Date(record.clockIn).getTime()
               : 0;
             const clockOutTime = record.clockOut
               ? new Date(record.clockOut).getTime()
               : 0;
             const isCheckOut = clockOutTime > clockInTime;
-
             return {
               ...record,
               attendanceType: isCheckOut ? "CHECK-OUT" : "CHECK-IN",
@@ -74,27 +67,39 @@ const Display = () => {
           })
           .sort((a, b) => b.activityTime - a.activityTime)[0];
         setAttendance(latestAttendance ?? null);
-        hasLoaded = true;
+        console.log("attendance", latestAttendance);
       } catch (error) {
         console.error(
-          "Failed to fetch display attendance:",
+          "Failed to display fetching data :",
           error.response?.data || error.message,
         );
-
-        if (active && !hasShownError) {
-          toast.error("Failed get Data attendance");
-          hasShownError = true;
-        }
+        toast.error("Failed get Data attendance", { id: "display-load-error" });
       } finally {
+        isFetching = false;
         if (active) setLoading(false);
       }
     };
-    fetchTodayAttendance();
+    fetchDataAttendance();
 
-    const interval = setInterval(fetchTodayAttendance, 10000);
     return () => {
       active = false;
-      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleCheckIn = (record) => {
+      setAttendance({ ...record, attendanceType: "CHECK-IN" });
+    };
+    const handleCheckOut = (record) => {
+      setAttendance({ ...record, attendanceType: "CHECK-OUT" });
+    };
+
+    socket.on("attendance-recorded", handleCheckIn);
+    socket.on("attendance-updated", handleCheckOut);
+
+    return () => {
+      socket.off("attendance-recorded", handleCheckIn);
+      socket.off("attendance-updated", handleCheckOut);
     };
   }, []);
 
@@ -115,22 +120,14 @@ const Display = () => {
     };
   }, []);
 
-  const currentTimeFormatted = new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZone: "Asia/Jakarta",
-  }).format(currentTime);
+  const currentTimeFormatted = formatTime(currentTime);
 
-  const currentDateFormatted = formattedDateLong();
+  const attendanceType = attendance?.attendanceType ?? "CHECK-IN";
 
-  const isCheckIn = Boolean(attendance.clockIn && !attendance.clockOut);
-
-  const attendanceTime = isCheckIn
-    ? formatTime(attendance.clockIn)
-    : formatTime(attendance.clockOut);
-
-  const attendanceType = isCheckIn ? "CHECK-IN" : "CHECK-OUT";
+  const attendanceTime =
+    attendanceType === "CHECK-OUT"
+      ? formatTime(attendance?.clockOut)
+      : formatTime(attendance?.clockIn);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -166,7 +163,7 @@ const Display = () => {
       <main className="mx-auto flex min-h-[calc(100vh-81px)] w-full max-w-7xl flex-col px-6 py-8 lg:px-10">
         <section className="flex flex-col justify-center items-center">
           <p className="text-md font-semibold capitalize tracking-wider text-muted-foreground">
-            {currentDateFormatted}
+            {formattedDateLong()}
           </p>
           <time
             className="mt-1 block text-6xl font-extrabold tracking-tight tabular-nums font-Montserrat sm:text-7xl lg:text-8xl"
@@ -217,7 +214,7 @@ const Display = () => {
                 {/* PHOTO */}
                 <div className="flex justify-center">
                   <div className="aspect-square w-40 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
-                    <img
+                    <Avatar
                       src={attendance.picture}
                       alt={attendance.name}
                       className="h-full w-full object-cover"
